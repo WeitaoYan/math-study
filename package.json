@@ -12,6 +12,8 @@
 		"cf-typegen": "wrangler types"
 	},
 	"dependencies": {
+		"jspdf": "^3.0.4",
+		"jspdf-autotable": "^5.0.2",
 		"nuxt": "^4.2.2",
 		"vue": "^3.5.25",
 		"vue-router": "^4.6.4"
