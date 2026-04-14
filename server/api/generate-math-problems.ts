@@ -7,12 +7,14 @@ import {
   empty_subtraction_config,
   empty_division_config,
   empty_multiplication_config,
+  empty_division_with_remainder_config,
 } from "../Math/Config";
 import {
   Addition,
   Subtraction,
   Multiplication,
   Division,
+  DivisionWithRemainder,
 } from "../Math/ProblemTypes";
 
 export default defineEventHandler(async (event) => {
@@ -47,19 +49,21 @@ function createPage(doc: any, pageIndex: number, config: Config) {
   // 添加页脚
   addFooter(doc);
   // 添加标题
+  doc.setFont("ChineseSubset", "normal"); // 设置中文字体
   doc.setFontSize(20);
   doc.text(`小学生口算题(第${pageIndex + 1}组)`, 105, 12, { align: "center" });
   // 准备表格数据
-  const rows: [string, number][] = getTableData(config);
+  const rows: [string, string][] = getTableData(config);
   const dateHeaders = Array(config.columns).fill("日期______");
   const scoreFooters = Array(config.columns).fill("成绩______");
-
+  doc.setFont("ChineseSubset", "normal");
   autoTable(doc, {
     head: [dateHeaders],
     body: reshapeRows(rows, config.columns),
     startY: 16,
     styles: {
-      font: "SourceHanSansCN",
+      font: "ChineseSubset", // 确保字体名称正确
+      fontStyle: "normal",
       fontSize: 14,
       minCellHeight: 12,
       valign: "middle",
@@ -67,14 +71,16 @@ function createPage(doc: any, pageIndex: number, config: Config) {
     headStyles: {
       fillColor: [230, 230, 230],
       textColor: [0, 0, 0],
-      // textColor: [255, 255, 255], // 白色文字
     },
     footStyles: {
       fillColor: [230, 230, 230],
       textColor: [0, 0, 0],
-      // textColor: [255, 255, 255], // 白色文字
     },
-    theme: "grid", //"plain", //"plain",
+    bodyStyles: {
+      font: "ChineseSubset", // 明确指定 body 使用中文字体
+      fontStyle: "normal",
+    },
+    theme: "grid",
     foot: [scoreFooters],
   });
 }
@@ -91,8 +97,8 @@ function addFooter(doc: any) {
   // doc.text(footerText, 105, 290, { align: "center" }); // 通常A4纸高度为297mm
 }
 function reshapeRows(
-  rows: [string, number][],
-  columns: number = 4
+  rows: [string, string][],
+  columns: number = 4,
 ): string[][] {
   const result: string[][] = [];
 
@@ -112,26 +118,29 @@ function reshapeRows(
   return result;
 }
 
-function getTableData(config: Config): [string, number][] {
-  const problems: [string, number][] = [];
+function getTableData(config: Config): [string, string][] {
+  const problems: [string, string][] = [];
 
   // 计算各题型数量
   const addition_count = Math.floor(config.total_count * config.addition.ratio);
   const subtraction_count = Math.floor(
-    config.total_count * config.subtraction.ratio
+    config.total_count * config.subtraction.ratio,
   );
   const multiplication_count = Math.floor(
-    config.total_count * config.multiplication.ratio
+    config.total_count * config.multiplication.ratio,
   );
   const division_count = Math.floor(config.total_count * config.division.ratio);
-
+  const division_with_remainder_count = Math.floor(
+    config.total_count * config.division_with_remainder.ratio,
+  );
+  console.log(division_with_remainder_count);
   for (let i = 0; i < addition_count; i++) {
     problems.push(
       new Addition(
         config.addition.range_max,
         config.addition.range_min,
-        config.addition.carry
-      ).generate()
+        config.addition.carry,
+      ).generate(),
     );
   }
   for (let i = 0; i < subtraction_count; i++) {
@@ -139,24 +148,32 @@ function getTableData(config: Config): [string, number][] {
       new Subtraction(
         config.subtraction.range_max,
         config.subtraction.range_min,
-        config.subtraction.borrow
-      ).generate()
+        config.subtraction.borrow,
+      ).generate(),
     );
   }
   for (let i = 0; i < multiplication_count; i++) {
     problems.push(
       new Multiplication(
         config.multiplication.factor_min,
-        config.multiplication.factor_max
-      ).generate()
+        config.multiplication.factor_max,
+      ).generate(),
     );
   }
   for (let i = 0; i < division_count; i++) {
     problems.push(
       new Division(
         config.division.factor_min,
-        config.division.factor_max
-      ).generate()
+        config.division.factor_max,
+      ).generate(),
+    );
+  }
+  for (let i = 0; i < division_with_remainder_count; i++) {
+    problems.push(
+      new DivisionWithRemainder(
+        config.division_with_remainder.divisor_min,
+        config.division_with_remainder.divisor_max,
+      ).generate(),
     );
   }
   // 对problem 洗牌，打乱顺序
@@ -182,6 +199,9 @@ interface RequestBody {
   division_ratio?: string;
   division_factor_min?: string;
   division_factor_max?: string;
+  division_with_remainder_ratio?: string;
+  division_with_remainder_divisor_min?: string;
+  division_with_remainder_divisor_max?: string;
   include_answers?: string;
   columns?: string;
 }
@@ -211,6 +231,7 @@ function getConfig(body: RequestBody): Config {
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -229,6 +250,7 @@ function getConfig(body: RequestBody): Config {
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -247,6 +269,7 @@ function getConfig(body: RequestBody): Config {
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -265,6 +288,7 @@ function getConfig(body: RequestBody): Config {
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -283,6 +307,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -301,6 +326,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -319,6 +345,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -337,6 +364,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -360,6 +388,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -383,6 +412,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -406,6 +436,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -429,6 +460,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -447,6 +479,7 @@ function getConfig(body: RequestBody): Config {
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -465,6 +498,7 @@ function getConfig(body: RequestBody): Config {
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -483,6 +517,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -501,6 +536,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -524,6 +560,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -547,6 +584,7 @@ function getConfig(body: RequestBody): Config {
         },
         multiplication: empty_multiplication_config,
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -564,6 +602,7 @@ function getConfig(body: RequestBody): Config {
           factor_max: 5,
         },
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -581,6 +620,7 @@ function getConfig(body: RequestBody): Config {
           factor_max: 7,
         },
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -598,6 +638,7 @@ function getConfig(body: RequestBody): Config {
           factor_max: 9,
         },
         division: empty_division_config,
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -615,6 +656,7 @@ function getConfig(body: RequestBody): Config {
           factor_min: 1,
           factor_max: 5,
         },
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -632,6 +674,7 @@ function getConfig(body: RequestBody): Config {
           factor_min: 2,
           factor_max: 7,
         },
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -649,6 +692,7 @@ function getConfig(body: RequestBody): Config {
           factor_min: 2,
           factor_max: 9,
         },
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -670,6 +714,7 @@ function getConfig(body: RequestBody): Config {
           factor_min: 1,
           factor_max: 5,
         },
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -691,6 +736,7 @@ function getConfig(body: RequestBody): Config {
           factor_min: 2,
           factor_max: 7,
         },
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -712,6 +758,80 @@ function getConfig(body: RequestBody): Config {
           factor_min: 2,
           factor_max: 9,
         },
+        division_with_remainder: empty_division_with_remainder_config,
+        include_answers: false,
+        columns: columns,
+      };
+
+    // 有余数除法
+    case "3-1":
+      // 10以内有余数除法
+      return {
+        total_count: total,
+        count: count,
+        addition: empty_addition_config,
+        subtraction: empty_subtraction_config,
+        multiplication: empty_multiplication_config,
+        division: empty_division_config,
+        division_with_remainder: {
+          ratio: 1,
+          divisor_min: 2,
+          divisor_max: 5,
+        },
+        include_answers: false,
+        columns: columns,
+      };
+
+    case "3-2":
+      // 20以内有余数除法
+      return {
+        total_count: total,
+        count: count,
+        addition: empty_addition_config,
+        subtraction: empty_subtraction_config,
+        multiplication: empty_multiplication_config,
+        division: empty_division_config,
+        division_with_remainder: {
+          ratio: 1,
+          divisor_min: 2,
+          divisor_max: 6,
+        },
+        include_answers: false,
+        columns: columns,
+      };
+
+    case "3-3":
+      // 50以内有余数除法
+      return {
+        total_count: total,
+        count: count,
+        addition: empty_addition_config,
+        subtraction: empty_subtraction_config,
+        multiplication: empty_multiplication_config,
+        division: empty_division_config,
+        division_with_remainder: {
+          ratio: 1,
+          divisor_min: 2,
+          divisor_max: 8,
+        },
+        include_answers: false,
+        columns: columns,
+      };
+
+    case "3-4":
+      // 100以内有余数除法
+      return {
+        total_count: total,
+        count: count,
+        addition: empty_addition_config,
+        subtraction: empty_subtraction_config,
+        multiplication: empty_multiplication_config,
+        division: empty_division_config,
+        division_with_remainder: {
+          ratio: 1,
+          divisor_min: 2,
+          divisor_max: 9,
+        },
         include_answers: false,
         columns: columns,
       };
@@ -722,13 +842,13 @@ function getConfig(body: RequestBody): Config {
         count: count,
         addition: {
           ratio: 0.1,
-          range_min: 10,
+          range_min: 20,
           range_max: 100,
           carry: true,
         },
         subtraction: {
           ratio: 0.1,
-          range_min: 10,
+          range_min: 20,
           range_max: 100,
           borrow: true,
         },
@@ -742,6 +862,7 @@ function getConfig(body: RequestBody): Config {
           factor_min: 2,
           factor_max: 9,
         },
+        division_with_remainder: empty_division_with_remainder_config,
         include_answers: false,
         columns: columns,
       };
@@ -750,33 +871,44 @@ function getConfig(body: RequestBody): Config {
 function _getConfig(body: RequestBody): Config {
   const total_count = parseInt(body.total_count || "100", 10);
   const count = parseInt(body.count || "10", 10);
-  const addition_ratio = parseFloat(body.addition_ratio || "10") / 100;
-  const addition_range_min = parseInt(body.addition_range_min || "20", 10);
-  const addition_range_max = parseInt(body.addition_range_max || "100", 10);
+  const addition_ratio = parseFloat(body.addition_ratio || "0") / 100;
+  const addition_range_min = parseInt(body.addition_range_min || "0", 10);
+  const addition_range_max = parseInt(body.addition_range_max || "0", 10);
   const addition_carry = parseBoolean(body.addition_carry);
-  const subtraction_ratio = parseFloat(body.subtraction_ratio || "10") / 100;
+  const subtraction_ratio = parseFloat(body.subtraction_ratio || "0") / 100;
   const subtraction_range_min = parseInt(
     body.subtraction_range_min || "20",
-    10
+    10,
   );
   const subtraction_range_max = parseInt(
     body.subtraction_range_max || "100",
-    10
+    10,
   );
   const subtraction_borrow = parseBoolean(body.subtraction_borrow);
   const multiplication_ratio =
-    parseFloat(body.multiplication_ratio || "40") / 100;
+    parseFloat(body.multiplication_ratio || "0") / 100;
   const multiplication_factor_min = parseInt(
     body.multiplication_factor_min || "2",
-    10
+    10,
   );
   const multiplication_factor_max = parseInt(
     body.multiplication_factor_max || "9",
-    10
+    10,
   );
-  const division_ratio = parseFloat(body.division_ratio || "40") / 100;
+  const division_ratio = parseFloat(body.division_ratio || "0") / 100;
   const division_factor_min = parseInt(body.division_factor_min || "2", 10);
   const division_factor_max = parseInt(body.division_factor_max || "9", 10);
+  const division_with_remainder_ratio =
+    parseFloat(body.division_with_remainder_ratio || "0") / 100;
+
+  const division_with_remainder_divisor_min = parseInt(
+    body.division_with_remainder_divisor_min || "2",
+    10,
+  );
+  const division_with_remainder_divisor_max = parseInt(
+    body.division_with_remainder_divisor_max || "9",
+    10,
+  );
   const include_answers = parseBoolean(body.include_answers);
   const columns = parseInt(body.columns || "5", 10);
 
@@ -804,6 +936,11 @@ function _getConfig(body: RequestBody): Config {
       ratio: division_ratio,
       factor_min: division_factor_min,
       factor_max: division_factor_max,
+    },
+    division_with_remainder: {
+      ratio: division_with_remainder_ratio,
+      divisor_min: division_with_remainder_divisor_min,
+      divisor_max: division_with_remainder_divisor_max,
     },
     include_answers: include_answers,
     columns: columns,

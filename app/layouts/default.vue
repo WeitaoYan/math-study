@@ -1,20 +1,15 @@
 <template>
   <div class="layout">
     <header class="layout-header">
-      <h1>Math Study</h1>
-      <nav>
-        <ul>
-          <li><NuxtLink to="/">首页</NuxtLink></li>
-        </ul>
-      </nav>
+      <NuxtLink to="/"><h1>爱学习</h1></NuxtLink>
     </header>
-    
+
     <main class="layout-main">
       <slot />
     </main>
-    
+
     <footer class="layout-footer">
-      <p>&copy; {{ new Date().getFullYear() }} Math Study. All rights reserved.</p>
+      <p>&copy; {{ new Date().getFullYear() }} 爱学习. All rights reserved.</p>
     </footer>
   </div>
 </template>
@@ -57,13 +52,13 @@
   text-decoration: none;
 }
 
-.layout-header a:hover {
+/* 只对导航链接应用悬停下划线 */
+.layout-header nav a:hover {
   text-decoration: underline;
 }
 
 .layout-main {
   flex: 1;
-  padding: 2rem;
 }
 
 .layout-footer {

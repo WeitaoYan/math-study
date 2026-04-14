@@ -18,28 +18,31 @@ class BaseMathProblem {
    * @param {number} left - 左操作数
    * @param {number} right - 右操作数
    * @param {number} result - 结果
+   * @param {string} [choice] - 可选，指定隐藏的位置：'left'、'right' 或 'result'，不指定则随机
    * @returns {[string, number]} 公式字符串和答案
    */
   generateFormula(
     left: number,
     right: number,
-    result: number
-  ): [string, number] {
+    result: number,
+    choice?: string,
+  ): [string, string] {
     const choices = ["left", "right", "result"];
-    const choice = choices[Math.floor(Math.random() * choices.length)];
+    const selectedChoice =
+      choice || choices[Math.floor(Math.random() * choices.length)];
 
     let problem, answer;
-    if (choice === "left") {
+    if (selectedChoice === "left") {
       problem = `___ ${this.symbol} ${right} = ${result}`;
       answer = left;
-    } else if (choice === "right") {
+    } else if (selectedChoice === "right") {
       problem = `${left} ${this.symbol} ___ = ${result}`;
       answer = right;
     } else {
       problem = `${left} ${this.symbol} ${right} = ___`;
       answer = result;
     }
-    return [problem, answer];
+    return [problem, `${answer}`];
   }
 }
 
@@ -74,7 +77,7 @@ export class Addition extends BaseMathProblem {
    * 生成加法题
    * @returns {[string, number]} 公式字符串和答案
    */
-  generate(): [string, number] {
+  generate(): [string, string] {
     // 生成加法题逻辑
     while (true) {
       const a =
@@ -201,5 +204,61 @@ export class Division extends BaseMathProblem {
       this.minFactor;
     const a = b * r;
     return this.generateFormula(a, b, r);
+  }
+}
+/**
+ * 有余数的除法题
+ * 格式：被除数 ÷ 除数 = 商 ... 余数
+ * 学生需要填写商和余数
+ */
+export class DivisionWithRemainder extends BaseMathProblem {
+  /** @type {string} */
+  symbol = "÷";
+  minFactor: number;
+  maxFactor: number;
+
+  /**
+   * @param {number} minFactor - 最小因子
+   * @param {number} maxFactor - 最大因子
+   */
+  constructor(minFactor = 2, maxFactor = 9) {
+    super();
+    this.minFactor = minFactor;
+    this.maxFactor = maxFactor;
+  }
+  /**
+   * 生成有余数的除法题
+   * @returns {[string, string]} 公式字符串和答案（答案编码为：商*100+余数）
+   */
+  generate(): [string, string] {
+    while (true) {
+      // 生成除数
+      const divisor =
+        Math.floor(Math.random() * (this.maxFactor - this.minFactor + 1)) +
+        this.minFactor;
+
+      // 生成商
+      const quotient =
+        Math.floor(Math.random() * (this.maxFactor - this.minFactor + 1)) +
+        this.minFactor;
+
+      // 计算被除数（先生成整除算式）
+      let dividend = quotient * divisor;
+
+      // 生成余数（必须小于除数，且大于0）
+      const maxRemainder = divisor - 1;
+      if (maxRemainder < 1) {
+        continue;
+      }
+
+      const remainder = Math.floor(Math.random() * maxRemainder) + 1;
+
+      // 将余数加到被除数上
+      dividend = dividend + remainder;
+
+      // 格式：被除数 ÷ 除数 = ___ ... ___
+      const problem = `${dividend} ${this.symbol} ${divisor} = ___`;
+      return [problem, `${quotient}......${remainder}`];
+    }
   }
 }

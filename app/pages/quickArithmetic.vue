@@ -87,6 +87,25 @@
             </div>
           </div>
         </div>
+
+        <!-- 有余数除法 -->
+        <div class="level-category">
+          <h3 class="category-title">有余数除法</h3>
+          <div class="level-options">
+            <div
+              v-for="item in levels['有余数除法']"
+              :key="item.level"
+              class="level-option"
+              :class="{ selected: selectedLevel === item.level }"
+              @click="selectLevel(item.level)"
+            >
+              <div class="option-content">
+                <h4 class="option-title">{{ item.title }}</h4>
+                <p class="option-desc">{{ item.desc }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -154,6 +173,12 @@ const levels = {
     { level: "2-7", title: "5以内乘除法", desc: "混合乘除法练习" },
     { level: "2-8", title: "7以内乘除法", desc: "简单混合运算" },
     { level: "2-9", title: "9以内乘除法", desc: "标准混合运算" },
+  ],
+  "有余数除法": [
+    { level: "3-1", title: "10以内有余数除法", desc: "被除数≤10，除数2-5" },
+    { level: "3-2", title: "20以内有余数除法", desc: "被除数≤20，除数2-6" },
+    { level: "3-3", title: "50以内有余数除法", desc: "被除数≤50，除数2-8" },
+    { level: "3-4", title: "100以内有余数除法", desc: "被除数≤100，除数2-9" },
   ],
 };
 

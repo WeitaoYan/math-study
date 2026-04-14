@@ -51,6 +51,19 @@ export const empty_division_config: DivisionConfig = {
   factor_max: 0,
 };
 
+export interface DivisionWithRemainderConfig {
+  ratio: number;
+  divisor_min: number;
+  divisor_max: number;
+}
+
+export const empty_division_with_remainder_config: DivisionWithRemainderConfig =
+  {
+    ratio: 0,
+    divisor_min: 0,
+    divisor_max: 0,
+  };
+
 export interface Config {
   total_count: number;
   count: number;
@@ -58,6 +71,7 @@ export interface Config {
   subtraction: SubtractionConfig;
   multiplication: MultiplicationConfig;
   division: DivisionConfig;
+  division_with_remainder: DivisionWithRemainderConfig;
   include_answers: boolean;
   columns: number;
 }

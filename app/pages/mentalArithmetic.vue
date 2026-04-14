@@ -28,19 +28,6 @@
               />
               <span class="help-text">需要生成多少组不同的练习题</span>
             </div>
-
-            <div class="form-group checkbox-group">
-              <label class="checkbox-container">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  id="include_answers"
-                  v-model="form.include_answers"
-                />
-                <span class="checkmark"></span>
-                包含答案页
-              </label>
-            </div>
           </div>
         </div>
 
@@ -241,7 +228,7 @@
             <div class="form-row">
               <div class="form-group half-width">
                 <label for="division_factor_min" class="form-label"
-                  >因数最小值</label
+                  >除数/商最小值</label
                 >
                 <input
                   type="number"
@@ -254,7 +241,7 @@
 
               <div class="form-group half-width">
                 <label for="division_factor_max" class="form-label"
-                  >因数最大值</label
+                  >除数/商最大值</label
                 >
                 <input
                   type="number"
@@ -264,6 +251,68 @@
                   min="1"
                 />
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 有余数除法配置 -->
+        <div class="config-card">
+          <div class="card-header">
+            <h2 class="card-title">有余数除法配置</h2>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="division_with_remainder_ratio" class="form-label"
+                >比例 (%)</label
+              >
+              <input
+                type="number"
+                class="form-input ratio-input"
+                id="division_with_remainder_ratio"
+                v-model.number="form.division_with_remainder_ratio"
+                min="0"
+                max="100"
+                required
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half-width">
+                <label
+                  for="division_with_remainder_divisor_min"
+                  class="form-label"
+                  >除数最小值</label
+                >
+                <input
+                  type="number"
+                  class="form-input"
+                  id="division_with_remainder_divisor_min"
+                  v-model.number="form.division_with_remainder_divisor_min"
+                  min="1"
+                />
+              </div>
+
+              <div class="form-group half-width">
+                <label
+                  for="division_with_remainder_divisor_max"
+                  class="form-label"
+                  >除数最大值</label
+                >
+                <input
+                  type="number"
+                  class="form-input"
+                  id="division_with_remainder_divisor_max"
+                  v-model.number="form.division_with_remainder_divisor_max"
+                  min="1"
+                />
+              </div>
+            </div>
+
+            <div
+              class="help-text"
+              style="margin-top: 8px; color: #718096; font-size: 0.875rem"
+            >
+              格式：被除数 ÷ 除数 = 商 ... 余数
             </div>
           </div>
         </div>
@@ -295,8 +344,8 @@
               loading
                 ? "生成中..."
                 : downloadSuccess
-                ? "已下载"
-                : "生成口算题PDF"
+                  ? "已下载"
+                  : "生成口算题PDF"
             }}
           </span>
         </button>
@@ -315,23 +364,27 @@ const form = reactive({
   count: 10,
   include_answers: false,
 
-  addition_ratio: 10,
-  addition_range_min: 0,
-  addition_range_max: 20,
-  addition_carry: false,
+  addition_ratio: 15,
+  addition_range_min: 20,
+  addition_range_max: 100,
+  addition_carry: true,
 
-  subtraction_ratio: 10,
-  subtraction_range_min: 0,
-  subtraction_range_max: 20,
-  subtraction_borrow: false,
+  subtraction_ratio: 15,
+  subtraction_range_min: 20,
+  subtraction_range_max: 100,
+  subtraction_borrow: true,
 
-  multiplication_ratio: 40,
+  multiplication_ratio: 35,
   multiplication_factor_min: 2,
   multiplication_factor_max: 9,
 
-  division_ratio: 40,
+  division_ratio: 35,
   division_factor_min: 2,
   division_factor_max: 9,
+
+  division_with_remainder_ratio: 0,
+  division_with_remainder_divisor_min: 2,
+  division_with_remainder_divisor_max: 9,
 });
 
 const loading = ref(false);
@@ -343,7 +396,8 @@ const ratioTotal = computed(() => {
     (form.addition_ratio || 0) +
     (form.subtraction_ratio || 0) +
     (form.multiplication_ratio || 0) +
-    (form.division_ratio || 0)
+    (form.division_ratio || 0) +
+    (form.division_with_remainder_ratio || 0)
   );
 });
 
@@ -351,7 +405,6 @@ const generateMathProblems = async () => {
   try {
     loading.value = true;
     downloadSuccess.value = false;
-    console.log("form:", form);
     // 发起请求并触发下载
     const response = await fetch("/api/generate-math-problems", {
       method: "POST",
@@ -360,7 +413,6 @@ const generateMathProblems = async () => {
       },
       body: JSON.stringify(form),
     });
-    console.log("response:", response);
     if (!response.ok) {
       throw new Error("网络响应错误");
     }
@@ -374,7 +426,7 @@ const generateMathProblems = async () => {
     if (contentDisposition) {
       // 处理 filename* 参数（RFC 5987 标准）
       const rfc5987FilenameMatch = contentDisposition.match(
-        /filename\*=(?:UTF-8'')?([^;]+)/i
+        /filename\*=(?:UTF-8'')?([^;]+)/i,
       );
       if (rfc5987FilenameMatch && rfc5987FilenameMatch[1]) {
         try {
@@ -433,8 +485,9 @@ const generateMathProblems = async () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 .header-section {

@@ -1,26 +1,33 @@
 {
-	"name": "math-study",
-	"type": "module",
-	"private": true,
-	"scripts": {
-		"build": "nuxt build",
-		"dev": "nuxt dev",
-		"generate": "nuxt generate",
-		"preview": "npm run build && wrangler dev",
-		"postinstall": "nuxt prepare",
-		"deploy": "npm run build && wrangler deploy",
-		"cf-typegen": "wrangler types"
-	},
-	"dependencies": {
-		"jspdf": "^3.0.4",
-		"jspdf-autotable": "^5.0.2",
-		"nuxt": "^4.2.2",
-		"vue": "^3.5.25",
-		"vue-router": "^4.6.4"
-	},
-	"devDependencies": {
-		"nitro-cloudflare-dev": "^0.2.2",
-		"nitropack": "^2.12.9",
-		"wrangler": "^4.56.0"
-	}
+  "name": "math-study",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "npm run build && wrangler dev",
+    "postinstall": "nuxt prepare",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "build:font": "node scripts/create-subset-font.js"
+  },
+  "dependencies": {
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
+    "nuxt": "^4.2.2",
+    "subset-font": "^2.4.0",
+    "vue": "^3.5.25",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@types/subset-font": "^2.3.0",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "nitro-cloudflare-dev": "^0.2.2",
+    "nitropack": "^2.12.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.4",
+    "wrangler": "^4.56.0"
+  }
 }

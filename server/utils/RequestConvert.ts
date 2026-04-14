@@ -1,6 +1,13 @@
-export function parseBoolean(value: string | undefined): boolean {
+export function parseBoolean(value: string | undefined | boolean): boolean {
   if (value === undefined) return false;
-  return value === "true" || value === "1" || value === "on";
+  return (
+    value === "true" ||
+    value === "1" ||
+    value === "on" ||
+    value === "yes" ||
+    value === "y" ||
+    value === true
+  );
 }
 export function parseRequestBody(body: string | undefined, event: any) {
   let requestData = {};
