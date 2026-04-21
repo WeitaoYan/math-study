@@ -27,6 +27,16 @@
                 required
               />
               <span class="help-text">需要生成多少组不同的练习题</span>
+              <label for="start" class="form-label">起始编号</label>
+              <input
+                type="number"
+                class="form-input"
+                id="start"
+                v-model.number="form.start"
+                min="1"
+                required
+              />
+              <span class="help-text">第一组题目的编号</span>
             </div>
           </div>
         </div>
@@ -362,6 +372,7 @@ useHead({
 
 const form = reactive({
   count: 10,
+  start: 1,
   include_answers: false,
 
   addition_ratio: 15,

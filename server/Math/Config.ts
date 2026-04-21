@@ -67,6 +67,7 @@ export const empty_division_with_remainder_config: DivisionWithRemainderConfig =
 export interface Config {
   total_count: number;
   count: number;
+  start: number;
   addition: AdditionConfig;
   subtraction: SubtractionConfig;
   multiplication: MultiplicationConfig;

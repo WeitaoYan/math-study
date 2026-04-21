@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     const doc = await createDoc();
     const config = getConfig(requestData);
     for (let i = 0; i < config.count; i++) {
-      createPage(doc, i, config);
+      createPage(doc, i, config, config.start);
     }
     return responsePDF(doc, event);
   } catch (error) {
@@ -39,7 +39,12 @@ export default defineEventHandler(async (event) => {
     return { error: "PDF生成失败" };
   }
 });
-function createPage(doc: any, pageIndex: number, config: Config) {
+function createPage(
+  doc: any,
+  pageIndex: number,
+  config: Config,
+  start: number,
+) {
   // 如果不是第一页，则添加新页面
   if (pageIndex > 0) {
     doc.addPage();
@@ -51,7 +56,9 @@ function createPage(doc: any, pageIndex: number, config: Config) {
   // 添加标题
   doc.setFont("ChineseSubset", "normal"); // 设置中文字体
   doc.setFontSize(20);
-  doc.text(`小学生口算题(第${pageIndex + 1}组)`, 105, 12, { align: "center" });
+  doc.text(`小学生口算题(第${pageIndex + start}组)`, 105, 12, {
+    align: "center",
+  });
   // 准备表格数据
   const rows: [string, string][] = getTableData(config);
   const dateHeaders = Array(config.columns).fill("日期______");
@@ -184,7 +191,8 @@ function getTableData(config: Config): [string, string][] {
 interface RequestBody {
   level?: string; // 没有level时表示自定义配置
   total_count?: string;
-  count?: string;
+  count?: number;
+  start?: number;
   addition_ratio?: string;
   addition_range_min?: string;
   addition_range_max?: string;
@@ -870,7 +878,8 @@ function getConfig(body: RequestBody): Config {
 }
 function _getConfig(body: RequestBody): Config {
   const total_count = parseInt(body.total_count || "100", 10);
-  const count = parseInt(body.count || "10", 10);
+  const count = body.count || 10;
+  const start = body.start || 1;
   const addition_ratio = parseFloat(body.addition_ratio || "0") / 100;
   const addition_range_min = parseInt(body.addition_range_min || "0", 10);
   const addition_range_max = parseInt(body.addition_range_max || "0", 10);
@@ -915,6 +924,7 @@ function _getConfig(body: RequestBody): Config {
   return {
     total_count: total_count,
     count: count,
+    start: start,
     addition: {
       ratio: addition_ratio,
       range_min: addition_range_min,
