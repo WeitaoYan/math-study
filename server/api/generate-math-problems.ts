@@ -230,6 +230,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 1,
           range_min: 0,
@@ -249,6 +250,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 1,
           range_min: 0,
@@ -268,6 +270,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 1,
           range_min: 0,
@@ -287,6 +290,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 1,
           range_min: 0,
@@ -306,6 +310,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: {
           ratio: 1,
@@ -325,6 +330,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: {
           ratio: 1,
@@ -344,6 +350,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: {
           ratio: 1,
@@ -363,6 +370,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: {
           ratio: 1,
@@ -382,6 +390,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 0.5,
           range_min: 0,
@@ -406,6 +415,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 0.5,
           range_min: 0,
@@ -430,6 +440,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 0.5,
           range_min: 0,
@@ -454,6 +465,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 0.5,
           range_min: 0,
@@ -478,6 +490,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 1,
           range_min: 10,
@@ -497,6 +510,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 1,
           range_min: 10,
@@ -516,6 +530,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: {
           ratio: 1,
@@ -535,6 +550,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: {
           ratio: 1,
@@ -554,6 +570,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 0.5,
           range_min: 10,
@@ -578,6 +595,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 0.5,
           range_min: 10,
@@ -602,6 +620,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: {
@@ -620,6 +639,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: {
@@ -638,6 +658,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: {
@@ -656,6 +677,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
@@ -674,6 +696,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
@@ -692,6 +715,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
@@ -710,6 +734,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: {
@@ -732,6 +757,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: {
@@ -754,6 +780,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: {
@@ -777,6 +804,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
@@ -795,6 +823,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
@@ -813,6 +842,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
@@ -831,6 +861,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: empty_addition_config,
         subtraction: empty_subtraction_config,
         multiplication: empty_multiplication_config,
@@ -848,6 +879,7 @@ function getConfig(body: RequestBody): Config {
       return {
         total_count: total,
         count: count,
+        start: 1,
         addition: {
           ratio: 0.1,
           range_min: 20,
