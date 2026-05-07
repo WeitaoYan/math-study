@@ -93,6 +93,8 @@ function createPage(
 }
 // 添加页眉函数
 function addHeader(doc: any) {
+  doc.setFontSize(10);
+  doc.text(`https://study.ikber.cc`, 14, 13);
   doc.setFontSize(14);
   doc.text(`姓名：_________`, 156, 13);
 }
