@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     const doc = await createDoc();
     const config = getConfig(requestData);
     for (let i = 0; i < config.count; i++) {
-      createPage(doc, i, config, config.start);
+      createPage(doc, i, config);
     }
     return responsePDF(doc, event);
   } catch (error) {
@@ -39,12 +39,7 @@ export default defineEventHandler(async (event) => {
     return { error: "PDF生成失败" };
   }
 });
-function createPage(
-  doc: any,
-  pageIndex: number,
-  config: Config,
-  start: number,
-) {
+function createPage(doc: any, pageIndex: number, config: Config) {
   // 如果不是第一页，则添加新页面
   if (pageIndex > 0) {
     doc.addPage();
@@ -56,13 +51,13 @@ function createPage(
   // 添加标题
   doc.setFont("ChineseSubset", "normal"); // 设置中文字体
   doc.setFontSize(20);
-  doc.text(`小学生口算题(第${pageIndex + start}组)`, 105, 12, {
+  doc.text(`小学生口算题(第${pageIndex + config.start}组)`, 105, 12, {
     align: "center",
   });
   // 准备表格数据
   const rows: [string, string][] = getTableData(config);
-  const dateHeaders = Array(config.columns).fill("日期______");
-  const scoreFooters = Array(config.columns).fill("成绩______");
+  const dateHeaders = Array(config.columns).fill("日期");
+  const scoreFooters = Array(config.columns).fill("成绩");
   doc.setFont("ChineseSubset", "normal");
   autoTable(doc, {
     head: [dateHeaders],
@@ -911,7 +906,6 @@ function getConfig(body: RequestBody): Config {
   }
 }
 function _getConfig(body: RequestBody): Config {
-  const total_count = parseInt(body.total_count || "100", 10);
   const count = body.count || 10;
   const start = body.start || 1;
   const addition_ratio = parseFloat(body.addition_ratio || "0") / 100;
@@ -953,8 +947,9 @@ function _getConfig(body: RequestBody): Config {
     10,
   );
   const include_answers = parseBoolean(body.include_answers);
-  const columns = parseInt(body.columns || "5", 10);
-
+  const max_number = Math.max(subtraction_range_max, addition_range_max);
+  const columns = max_number > 100 ? 4 : 5;
+  const total_count = max_number > 100 ? 80 : 100;
   return {
     total_count: total_count,
     count: count,
