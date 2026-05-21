@@ -29,20 +29,20 @@ function buildFactories(config: Config): ProblemFactory[] {
   // 加法
   const addCount = Math.floor(config.total_count * config.addition.ratio);
   if (addCount > 0) {
-    const { range_max: max, range_min: min, carry } = config.addition;
+    const { range_max: max, range_min: min, carry, round_to } = config.addition;
     factories.push({
       count: addCount,
-      generate: () => new Addition(max, min, carry).generate(),
+      generate: () => new Addition(max, min, carry, round_to).generate(),
     });
   }
 
   // 减法
   const subCount = Math.floor(config.total_count * config.subtraction.ratio);
   if (subCount > 0) {
-    const { range_max: max, range_min: min, borrow } = config.subtraction;
+    const { range_max: max, range_min: min, borrow, round_to } = config.subtraction;
     factories.push({
       count: subCount,
-      generate: () => new Subtraction(max, min, borrow).generate(),
+      generate: () => new Subtraction(max, min, borrow, round_to).generate(),
     });
   }
 

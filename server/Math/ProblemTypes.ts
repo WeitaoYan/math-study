@@ -55,16 +55,19 @@ export class Addition extends BaseMathProblem {
   maxSum: number;
   minSum: number;
   validators: Validation[];
+  roundTo: number;
 
   /**
    * @param {number} maxSum - 最大和
    * @param {number} minSum - 最小和
    * @param {boolean} carry - 是否进位
+   * @param {number} roundTo - 整十整百约束: 0=无, 10=整十, 100=整百
    */
-  constructor(maxSum = 100, minSum = 0, carry = false) {
+  constructor(maxSum = 100, minSum = 0, carry = false, roundTo = 0) {
     super();
     this.maxSum = maxSum;
     this.minSum = minSum;
+    this.roundTo = roundTo;
     this.validators = [new MaxValidator(maxSum)];
     if (carry) {
       this.validators.push(new CarryValidator());
@@ -78,11 +81,27 @@ export class Addition extends BaseMathProblem {
    * @returns {[string, number]} 公式字符串和答案
    */
   generate(): [string, string] {
-    // 生成加法题逻辑
     while (true) {
-      const a =
-        Math.floor(Math.random() * (this.maxSum - this.minSum)) + this.minSum;
-      const b = Math.floor(Math.random() * (this.maxSum - a)) + a;
+      let a: number, b: number;
+
+      if (this.roundTo > 0) {
+        // 整十/整百模式：在"步数空间"中生成，确保操作数都是 roundTo 的倍数
+        const maxSteps = Math.floor(this.maxSum / this.roundTo);
+        const minSteps = Math.floor(this.minSum / this.roundTo);
+        const aSteps =
+          Math.floor(Math.random() * (maxSteps - minSteps + 1)) + minSteps;
+        a = aSteps * this.roundTo;
+        const bSteps =
+          Math.floor(Math.random() * (maxSteps - aSteps + 1)) + aSteps;
+        b = bSteps * this.roundTo;
+      } else {
+        // 普通模式
+        a =
+          Math.floor(Math.random() * (this.maxSum - this.minSum)) +
+          this.minSum;
+        b = Math.floor(Math.random() * (this.maxSum - a)) + a;
+      }
+
       const r = a + b;
       if (this.validators.every((v) => v.isValid(a, b))) {
         return this.generateFormula(a, b, r);
@@ -100,16 +119,19 @@ export class Subtraction extends BaseMathProblem {
   maxSum: number;
   minSum: number;
   validators: Validation[];
+  roundTo: number;
 
   /**
    * @param {number} maxSum - 最大和
    * @param {number} minSum - 最小和
    * @param {boolean} borrow - 是否借位
+   * @param {number} roundTo - 整十整百约束: 0=无, 10=整十, 100=整百
    */
-  constructor(maxSum = 100, minSum = 0, borrow = false) {
+  constructor(maxSum = 100, minSum = 0, borrow = false, roundTo = 0) {
     super();
     this.maxSum = maxSum;
     this.minSum = minSum;
+    this.roundTo = roundTo;
     this.validators = [new MaxValidator(maxSum)];
     if (borrow) {
       this.validators.push(new CarryValidator());
@@ -123,11 +145,27 @@ export class Subtraction extends BaseMathProblem {
    * @returns {[string, number]} 公式字符串和答案
    */
   generate() {
-    // 生成减法题逻辑
     while (true) {
-      const a =
-        Math.floor(Math.random() * (this.maxSum - this.minSum)) + this.minSum;
-      const b = Math.floor(Math.random() * (this.maxSum - a)) + a;
+      let a: number, b: number;
+
+      if (this.roundTo > 0) {
+        // 整十/整百模式：在"步数空间"中生成
+        const maxSteps = Math.floor(this.maxSum / this.roundTo);
+        const minSteps = Math.floor(this.minSum / this.roundTo);
+        const aSteps =
+          Math.floor(Math.random() * (maxSteps - minSteps + 1)) + minSteps;
+        a = aSteps * this.roundTo;
+        const bSteps =
+          Math.floor(Math.random() * (maxSteps - aSteps + 1)) + aSteps;
+        b = bSteps * this.roundTo;
+      } else {
+        // 普通模式
+        a =
+          Math.floor(Math.random() * (this.maxSum - this.minSum)) +
+          this.minSum;
+        b = Math.floor(Math.random() * (this.maxSum - a)) + a;
+      }
+
       const r = a + b;
       if (this.validators.every((v) => v.isValid(a, b))) {
         return this.generateFormula(r, a, b);

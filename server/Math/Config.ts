@@ -4,6 +4,7 @@ export interface AdditionConfig {
   range_min: number;
   range_max: number;
   carry: boolean;
+  round_to: number; // 0=无约束, 10=整十, 100=整百
 }
 
 export const empty_addition_config: AdditionConfig = {
@@ -11,6 +12,7 @@ export const empty_addition_config: AdditionConfig = {
   range_min: 0,
   range_max: 0,
   carry: false,
+  round_to: 0,
 };
 
 export interface SubtractionConfig {
@@ -18,6 +20,7 @@ export interface SubtractionConfig {
   range_min: number;
   range_max: number;
   borrow: boolean;
+  round_to: number; // 0=无约束, 10=整十, 100=整百
 }
 
 export const empty_subtraction_config: SubtractionConfig = {
@@ -25,6 +28,7 @@ export const empty_subtraction_config: SubtractionConfig = {
   range_min: 0,
   range_max: 0,
   borrow: false,
+  round_to: 0,
 };
 
 export interface MultiplicationConfig {

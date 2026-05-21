@@ -15,6 +15,17 @@ import {
 const TOTAL = 100;
 const COUNT = 5;
 const COLUMNS = 5;
+/** 布局切换阈值：最大数超过此值则切换为紧凑布局 */
+const LAYOUT_THRESHOLD = 100;
+
+/** 根据数值范围自动计算合适的列数 */
+export function calcColumns(maxNumber: number): number {
+  return maxNumber > LAYOUT_THRESHOLD ? 4 : 5;
+}
+/** 根据数值范围自动计算每页题数 */
+export function calcTotalCount(maxNumber: number): number {
+  return maxNumber > LAYOUT_THRESHOLD ? 80 : 100;
+}
 
 // -------------------- 快速配置工厂函数 --------------------
 function quickConfig(overrides: Partial<Config>): Config {
@@ -34,9 +45,20 @@ function quickConfig(overrides: Partial<Config>): Config {
 }
 
 /** 纯加法预设 */
-function additionOnly(rangeMin: number, rangeMax: number, carry: boolean) {
+function additionOnly(
+  rangeMin: number,
+  rangeMax: number,
+  carry: boolean,
+  roundTo = 0,
+) {
   return quickConfig({
-    addition: { ratio: 1, range_min: rangeMin, range_max: rangeMax, carry },
+    addition: {
+      ratio: 1,
+      range_min: rangeMin,
+      range_max: rangeMax,
+      carry,
+      round_to: roundTo,
+    },
   });
 }
 
@@ -45,6 +67,7 @@ function subtractionOnly(
   rangeMin: number,
   rangeMax: number,
   borrow: boolean,
+  roundTo = 0,
 ) {
   return quickConfig({
     subtraction: {
@@ -52,6 +75,7 @@ function subtractionOnly(
       range_min: rangeMin,
       range_max: rangeMax,
       borrow,
+      round_to: roundTo,
     },
   });
 }
@@ -62,14 +86,22 @@ function mixAddSub(
   rangeMax: number,
   carry: boolean,
   borrow: boolean,
+  roundTo = 0,
 ) {
   return quickConfig({
-    addition: { ratio: 0.5, range_min: rangeMin, range_max: rangeMax, carry },
+    addition: {
+      ratio: 0.5,
+      range_min: rangeMin,
+      range_max: rangeMax,
+      carry,
+      round_to: roundTo,
+    },
     subtraction: {
       ratio: 0.5,
       range_min: rangeMin,
       range_max: rangeMax,
       borrow,
+      round_to: roundTo,
     },
   });
 }
@@ -153,6 +185,14 @@ export const LEVEL_PRESETS: Record<string, Config> = {
   "3-2": divRemainder(2, 6), // 20以内有余数除法
   "3-3": divRemainder(2, 8), // 50以内有余数除法
   "3-4": divRemainder(2, 9), // 100以内有余数除法
+
+  // ========== 整十整百口算 ==========
+  "4-1": additionOnly(10, 1000, true, 10), // 整十加法(100以内)
+  "4-2": subtractionOnly(10, 1000, true, 10), // 整十减法(100以内)
+  "4-3": mixAddSub(10, 1000, true, true, 10), // 整十加减混合
+  "4-4": additionOnly(100, 10000, true, 100), // 整百加法(1000以内)
+  "4-5": subtractionOnly(100, 10000, true, 100), // 整百减法(1000以内)
+  "4-6": mixAddSub(100, 10000, true, true, 100), // 整百加减混合
 };
 
 /** 默认综合混合配置（用于未知 Level 的兜底） */
@@ -162,12 +202,14 @@ const DEFAULT_CONFIG = quickConfig({
     range_min: 20,
     range_max: 100,
     carry: true,
+    round_to: 0,
   },
   subtraction: {
     ratio: 0.1,
     range_min: 20,
     range_max: 100,
     borrow: true,
+    round_to: 0,
   },
   multiplication: {
     ratio: 0.4,
@@ -187,5 +229,15 @@ const DEFAULT_CONFIG = quickConfig({
  * @returns 对应配置，Level 不存在时返回默认综合混合配置
  */
 export function getPresetConfig(level: string): Config {
-  return LEVEL_PRESETS[level] ?? DEFAULT_CONFIG;
+  const config = LEVEL_PRESETS[level] ?? DEFAULT_CONFIG;
+  // 自动修正布局：范围超过100时用4列 + 每页80题，避免数字过挤
+  const maxNumber = Math.max(
+    config.addition.range_max,
+    config.subtraction.range_max,
+  );
+  return {
+    ...config,
+    columns: calcColumns(maxNumber),
+    total_count: calcTotalCount(maxNumber),
+  };
 }

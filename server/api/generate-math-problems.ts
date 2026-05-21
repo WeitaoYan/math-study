@@ -24,10 +24,12 @@ export interface RequestBody {
   addition_range_min?: string;
   addition_range_max?: string;
   addition_carry?: string;
+  addition_round_to?: string;
   subtraction_ratio?: string;
   subtraction_range_min?: string;
   subtraction_range_max?: string;
   subtraction_borrow?: string;
+  subtraction_round_to?: string;
   multiplication_ratio?: string;
   multiplication_factor_min?: string;
   multiplication_factor_max?: string;

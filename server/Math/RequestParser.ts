@@ -3,6 +3,7 @@
  * 将前端传来的 RequestBody（字符串字段）转换为强类型的 Config
  */
 import type { Config } from "./Config";
+import { calcColumns, calcTotalCount } from "./LevelPresets";
 import { parseBoolean } from "../utils/RequestConvert";
 import type { RequestBody } from "../api/generate-math-problems";
 
@@ -12,17 +13,14 @@ import type { RequestBody } from "../api/generate-math-problems";
  * @returns 解析后的 Config 对象
  */
 export function parseCustomConfig(body: RequestBody): Config {
-  const addition_range_max = parseInt(
-    body.addition_range_max ?? "20",
-    10,
-  );
+  const addition_range_max = parseInt(body.addition_range_max ?? "20", 10);
   const subtraction_range_max = parseInt(
     body.subtraction_range_max ?? "100",
     10,
   );
   const max_number = Math.max(subtraction_range_max, addition_range_max);
-  const columns = max_number > 100 ? 4 : 5;
-  const total_count = max_number > 100 ? 80 : 100;
+  const columns = calcColumns(max_number);
+  const total_count = calcTotalCount(max_number);
 
   return {
     total_count,
@@ -36,12 +34,14 @@ export function parseCustomConfig(body: RequestBody): Config {
       range_min: parseInt(body.addition_range_min ?? "0", 10),
       range_max: addition_range_max,
       carry: parseBoolean(body.addition_carry),
+      round_to: parseInt(body.addition_round_to ?? "0", 10),
     },
     subtraction: {
       ratio: parseFloat(body.subtraction_ratio ?? "0") / 100,
       range_min: parseInt(body.subtraction_range_min ?? "20", 10),
       range_max: subtraction_range_max,
       borrow: parseBoolean(body.subtraction_borrow),
+      round_to: parseInt(body.subtraction_round_to ?? "0", 10),
     },
     multiplication: {
       ratio: parseFloat(body.multiplication_ratio ?? "0") / 100,

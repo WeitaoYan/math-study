@@ -106,6 +106,25 @@
             </div>
           </div>
         </div>
+
+        <!-- 整十整百口算 -->
+        <div class="level-category">
+          <h3 class="category-title">整十整百口算</h3>
+          <div class="level-options">
+            <div
+              v-for="item in levels['整十整百口算']"
+              :key="item.level"
+              class="level-option"
+              :class="{ selected: selectedLevel === item.level }"
+              @click="selectLevel(item.level)"
+            >
+              <div class="option-content">
+                <h4 class="option-title">{{ item.title }}</h4>
+                <p class="option-desc">{{ item.desc }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -121,8 +140,8 @@
               loading
                 ? "生成中..."
                 : downloadSuccess
-                ? "已下载"
-                : "生成口算题PDF"
+                  ? "已下载"
+                  : "生成口算题PDF"
             }}
           </span>
         </button>
@@ -174,11 +193,19 @@ const levels = {
     { level: "2-8", title: "7以内乘除法", desc: "简单混合运算" },
     { level: "2-9", title: "9以内乘除法", desc: "标准混合运算" },
   ],
-  "有余数除法": [
+  有余数除法: [
     { level: "3-1", title: "10以内有余数除法", desc: "被除数≤10，除数2-5" },
     { level: "3-2", title: "20以内有余数除法", desc: "被除数≤20，除数2-6" },
     { level: "3-3", title: "50以内有余数除法", desc: "被除数≤50，除数2-8" },
     { level: "3-4", title: "100以内有余数除法", desc: "被除数≤100，除数2-9" },
+  ],
+  整十整百口算: [
+    { level: "4-1", title: "整十加法", desc: "1000以内，如 380+540=920" },
+    { level: "4-2", title: "整十减法", desc: "1000以内，如 810-370=440" },
+    { level: "4-3", title: "整十加减混合", desc: "1000以内整十数混合运算" },
+    { level: "4-4", title: "整百加法", desc: "10000以内，如 3500+5900=9400" },
+    { level: "4-5", title: "整百减法", desc: "10000以内，如 8400-3800=4600" },
+    { level: "4-6", title: "整百加减混合", desc: "10000以内整百数混合运算" },
   ],
 };
 
@@ -224,7 +251,7 @@ const generateMathProblems = async () => {
     if (contentDisposition) {
       // 处理 filename* 参数（RFC 5987 标准）
       const rfc5987FilenameMatch = contentDisposition.match(
-        /filename\*=(?:UTF-8'')?([^;]+)/i
+        /filename\*=(?:UTF-8'')?([^;]+)/i,
       );
       if (rfc5987FilenameMatch && rfc5987FilenameMatch[1]) {
         try {
@@ -283,8 +310,9 @@ const generateMathProblems = async () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 .header-section {

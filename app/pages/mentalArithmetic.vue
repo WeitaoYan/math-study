@@ -100,6 +100,18 @@
                 允许进位
               </label>
             </div>
+            <div class="form-group">
+              <label for="addition_round_to" class="form-label">整十整百约束</label>
+              <select
+                id="addition_round_to"
+                v-model.number="form.addition_round_to"
+                class="form-input"
+              >
+                <option :value="0">无约束</option>
+                <option :value="10">整十（10,20,30...）</option>
+                <option :value="100">整百（100,200,300...）</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -161,6 +173,18 @@
                 <span class="checkmark"></span>
                 允许借位
               </label>
+            </div>
+            <div class="form-group">
+              <label for="subtraction_round_to" class="form-label">整十整百约束</label>
+              <select
+                id="subtraction_round_to"
+                v-model.number="form.subtraction_round_to"
+                class="form-input"
+              >
+                <option :value="0">无约束</option>
+                <option :value="10">整十（10,20,30...）</option>
+                <option :value="100">整百（100,200,300...）</option>
+              </select>
             </div>
           </div>
         </div>
@@ -379,11 +403,13 @@ const form = reactive({
   addition_range_min: 20,
   addition_range_max: 100,
   addition_carry: true,
+  addition_round_to: 0,
 
   subtraction_ratio: 15,
   subtraction_range_min: 20,
   subtraction_range_max: 100,
   subtraction_borrow: true,
+  subtraction_round_to: 0,
 
   multiplication_ratio: 35,
   multiplication_factor_min: 2,
