@@ -17,14 +17,18 @@ const COUNT = 5;
 const COLUMNS = 5;
 /** 布局切换阈值：最大数超过此值则切换为紧凑布局 */
 const LAYOUT_THRESHOLD = 100;
+/** 紧凑模式阈值：>= 此值则用 3 列 + 小字号 */
+const COMPACT_THRESHOLD = 10000;
 
 /** 根据数值范围自动计算合适的列数 */
 export function calcColumns(maxNumber: number): number {
-  return maxNumber > LAYOUT_THRESHOLD ? 4 : 5;
+  if (maxNumber >= COMPACT_THRESHOLD) return 3;
+  if (maxNumber > LAYOUT_THRESHOLD) return 4;
+  return 5;
 }
 /** 根据数值范围自动计算每页题数 */
 export function calcTotalCount(maxNumber: number): number {
-  return maxNumber > LAYOUT_THRESHOLD ? 80 : 100;
+  return calcColumns(maxNumber) * 20;
 }
 
 // -------------------- 快速配置工厂函数 --------------------

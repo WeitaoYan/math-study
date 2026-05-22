@@ -33,13 +33,13 @@ class BaseMathProblem {
 
     let problem, answer;
     if (selectedChoice === "left") {
-      problem = `___ ${this.symbol} ${right} = ${result}`;
+      problem = `___${this.symbol}${right}=${result}`;
       answer = left;
     } else if (selectedChoice === "right") {
-      problem = `${left} ${this.symbol} ___ = ${result}`;
+      problem = `${left}${this.symbol}___=${result}`;
       answer = right;
     } else {
-      problem = `${left} ${this.symbol} ${right} = ___`;
+      problem = `${left}${this.symbol}${right}=___`;
       answer = result;
     }
     return [problem, `${answer}`];
@@ -295,7 +295,7 @@ export class DivisionWithRemainder extends BaseMathProblem {
       dividend = dividend + remainder;
 
       // 格式：被除数 ÷ 除数 = ___ ... ___
-      const problem = `${dividend} ${this.symbol} ${divisor} = ___`;
+      const problem = `${dividend}${this.symbol}${divisor}=___`;
       return [problem, `${quotient}......${remainder}`];
     }
   }

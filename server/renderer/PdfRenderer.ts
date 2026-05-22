@@ -52,6 +52,9 @@ function renderTable(doc: any, config: Config) {
   const problems = generateProblems(config);
   const problemTexts = problems.map((p) => p[0]); // 只取题目文本
 
+  /** 紧凑模式：列数 <=3 时用小字号避免换行溢出 */
+  const cellFontSize = config.columns <= 3 ? S.cell.compactFontSize : S.cell.fontSize;
+
   doc.setFont(S.font.name, S.font.style);
   autoTable(doc, {
     head: [createDateHeaders(config.columns)],
@@ -60,7 +63,7 @@ function renderTable(doc: any, config: Config) {
     styles: {
       font: S.font.name,
       fontStyle: S.font.style,
-      fontSize: S.cell.fontSize,
+      fontSize: cellFontSize,
       minCellHeight: S.cell.minCellHeight,
       valign: "middle",
     },

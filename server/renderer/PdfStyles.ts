@@ -29,6 +29,7 @@ export const PDF_STYLES = {
   /** 表格单元格 */
   cell: {
     fontSize: 14,
+    compactFontSize: 11,
     minCellHeight: 12,
   },
 
