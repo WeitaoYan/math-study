@@ -3,7 +3,7 @@
  * 将前端传来的 RequestBody（字符串字段）转换为强类型的 Config
  */
 import type { Config } from "./Config";
-import { calcColumns, calcTotalCount } from "./LevelPresets";
+import { calcColumns, calcCompact } from "./LevelPresets";
 import { parseBoolean } from "../utils/RequestConvert";
 import type { RequestBody } from "../api/generate-math-problems";
 
@@ -20,14 +20,13 @@ export function parseCustomConfig(body: RequestBody): Config {
   );
   const max_number = Math.max(subtraction_range_max, addition_range_max);
   const columns = calcColumns(max_number);
-  const total_count = calcTotalCount(max_number);
 
   return {
-    total_count,
     count: body.count ?? 10,
     start: body.start ?? 1,
     columns,
     include_answers: parseBoolean(body.include_answers),
+    compact: calcCompact(max_number),
 
     addition: {
       ratio: parseFloat(body.addition_ratio ?? "0") / 100,

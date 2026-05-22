@@ -12,29 +12,27 @@ import {
 } from "./Config";
 
 // -------------------- 通用默认值 --------------------
-const TOTAL = 100;
 const COUNT = 5;
 const COLUMNS = 5;
-/** 布局切换阈值：最大数超过此值则切换为紧凑布局 */
-const LAYOUT_THRESHOLD = 100;
-/** 紧凑模式阈值：>= 此值则用 3 列 + 小字号 */
-const COMPACT_THRESHOLD = 10000;
+/** 紧凑布局阈值：最大数超过此值则取消符号两边的空格 */
+const COMPACT_SPACING_THRESHOLD = 1000;
+/** 4列布局阈值：最大数超过此值则用 4 列 */
+const FOUR_COL_THRESHOLD = 10000;
 
 /** 根据数值范围自动计算合适的列数 */
 export function calcColumns(maxNumber: number): number {
-  if (maxNumber >= COMPACT_THRESHOLD) return 3;
-  if (maxNumber > LAYOUT_THRESHOLD) return 4;
+  if (maxNumber >= FOUR_COL_THRESHOLD) return 4;
   return 5;
 }
-/** 根据数值范围自动计算每页题数 */
-export function calcTotalCount(maxNumber: number): number {
-  return calcColumns(maxNumber) * 20;
+
+/** 根据数值范围判断是否需要紧凑模式（去掉符号两边空格） */
+export function calcCompact(maxNumber: number): boolean {
+  return maxNumber >= COMPACT_SPACING_THRESHOLD;
 }
 
 // -------------------- 快速配置工厂函数 --------------------
 function quickConfig(overrides: Partial<Config>): Config {
   return {
-    total_count: TOTAL,
     count: COUNT,
     start: 1,
     addition: empty_addition_config,
@@ -44,6 +42,7 @@ function quickConfig(overrides: Partial<Config>): Config {
     division_with_remainder: empty_division_with_remainder_config,
     include_answers: false,
     columns: COLUMNS,
+    compact: false,
     ...overrides,
   };
 }
@@ -242,6 +241,6 @@ export function getPresetConfig(level: string): Config {
   return {
     ...config,
     columns: calcColumns(maxNumber),
-    total_count: calcTotalCount(maxNumber),
+    compact: calcCompact(maxNumber),
   };
 }

@@ -13,6 +13,18 @@ class BaseMathProblem {
   /** @type {string} */
   symbol = "";
 
+  /** 是否在符号两边添加空格，默认开启 */
+  spacing = true;
+
+  /**
+   * 格式化题目各部分，根据 spacing 开关决定是否加空格
+   * @param parts 各部分字符串，依次为：左操作数、运算符、右操作数、=、结果
+   */
+  fmt(parts: string[]): string {
+    const s = this.spacing ? " " : "";
+    return parts.join(s);
+  }
+
   /**
    * 生成公式
    * @param {number} left - 左操作数
@@ -33,13 +45,13 @@ class BaseMathProblem {
 
     let problem, answer;
     if (selectedChoice === "left") {
-      problem = `___${this.symbol}${right}=${result}`;
+      problem = this.fmt(["___", this.symbol, `${right}`, "=", `${result}`]);
       answer = left;
     } else if (selectedChoice === "right") {
-      problem = `${left}${this.symbol}___=${result}`;
+      problem = this.fmt([`${left}`, this.symbol, "___", "=", `${result}`]);
       answer = right;
     } else {
-      problem = `${left}${this.symbol}${right}=___`;
+      problem = this.fmt([`${left}`, this.symbol, `${right}`, "=", "___"]);
       answer = result;
     }
     return [problem, `${answer}`];
@@ -63,8 +75,9 @@ export class Addition extends BaseMathProblem {
    * @param {boolean} carry - 是否进位
    * @param {number} roundTo - 整十整百约束: 0=无, 10=整十, 100=整百
    */
-  constructor(maxSum = 100, minSum = 0, carry = false, roundTo = 0) {
+  constructor(maxSum = 100, minSum = 0, carry = false, roundTo = 0, compact = false) {
     super();
+    this.spacing = !compact;
     this.maxSum = maxSum;
     this.minSum = minSum;
     this.roundTo = roundTo;
@@ -97,8 +110,7 @@ export class Addition extends BaseMathProblem {
       } else {
         // 普通模式
         a =
-          Math.floor(Math.random() * (this.maxSum - this.minSum)) +
-          this.minSum;
+          Math.floor(Math.random() * (this.maxSum - this.minSum)) + this.minSum;
         b = Math.floor(Math.random() * (this.maxSum - a)) + a;
       }
 
@@ -127,8 +139,9 @@ export class Subtraction extends BaseMathProblem {
    * @param {boolean} borrow - 是否借位
    * @param {number} roundTo - 整十整百约束: 0=无, 10=整十, 100=整百
    */
-  constructor(maxSum = 100, minSum = 0, borrow = false, roundTo = 0) {
+  constructor(maxSum = 100, minSum = 0, borrow = false, roundTo = 0, compact = false) {
     super();
+    this.spacing = !compact;
     this.maxSum = maxSum;
     this.minSum = minSum;
     this.roundTo = roundTo;
@@ -161,8 +174,7 @@ export class Subtraction extends BaseMathProblem {
       } else {
         // 普通模式
         a =
-          Math.floor(Math.random() * (this.maxSum - this.minSum)) +
-          this.minSum;
+          Math.floor(Math.random() * (this.maxSum - this.minSum)) + this.minSum;
         b = Math.floor(Math.random() * (this.maxSum - a)) + a;
       }
 
@@ -187,8 +199,9 @@ export class Multiplication extends BaseMathProblem {
    * @param {number} minFactor - 最小因子
    * @param {number} maxFactor - 最大因子
    */
-  constructor(minFactor = 2, maxFactor = 9) {
+  constructor(minFactor = 2, maxFactor = 9, compact = false) {
     super();
+    this.spacing = !compact;
     this.minFactor = minFactor;
     this.maxFactor = maxFactor;
   }
@@ -222,8 +235,9 @@ export class Division extends BaseMathProblem {
    * @param {number} minFactor - 最小因子
    * @param {number} maxFactor - 最大因子
    */
-  constructor(minFactor = 2, maxFactor = 9) {
+  constructor(minFactor = 2, maxFactor = 9, compact = false) {
     super();
+    this.spacing = !compact;
     this.minFactor = minFactor;
     this.maxFactor = maxFactor;
   }
@@ -259,14 +273,15 @@ export class DivisionWithRemainder extends BaseMathProblem {
    * @param {number} minFactor - 最小因子
    * @param {number} maxFactor - 最大因子
    */
-  constructor(minFactor = 2, maxFactor = 9) {
+  constructor(minFactor = 2, maxFactor = 9, compact = false) {
     super();
+    this.spacing = !compact;
     this.minFactor = minFactor;
     this.maxFactor = maxFactor;
   }
   /**
    * 生成有余数的除法题
-   * @returns {[string, string]} 公式字符串和答案（答案编码为：商*100+余数）
+   * @returns {[string, string]} 公式字符串和答案
    */
   generate(): [string, string] {
     while (true) {
@@ -295,8 +310,14 @@ export class DivisionWithRemainder extends BaseMathProblem {
       dividend = dividend + remainder;
 
       // 格式：被除数 ÷ 除数 = ___ ... ___
-      const problem = `${dividend}${this.symbol}${divisor}=___`;
-      return [problem, `${quotient}......${remainder}`];
+      const problem = this.fmt([
+        `${dividend}`,
+        this.symbol,
+        `${divisor}`,
+        "=",
+        "___",
+      ]);
+      return [problem, `${quotient}······${remainder}`];
     }
   }
 }

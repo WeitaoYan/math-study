@@ -69,7 +69,6 @@ export const empty_division_with_remainder_config: DivisionWithRemainderConfig =
   };
 
 export interface Config {
-  total_count: number;
   count: number;
   start: number;
   addition: AdditionConfig;
@@ -79,4 +78,6 @@ export interface Config {
   division_with_remainder: DivisionWithRemainderConfig;
   include_answers: boolean;
   columns: number;
+  /** 紧凑模式：关闭符号两边的空格 */
+  compact: boolean;
 }

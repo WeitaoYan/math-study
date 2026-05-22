@@ -15,7 +15,6 @@ import type { Config } from "../Math/Config";
 // ==================== 请求体类型定义 ====================
 export interface RequestBody {
   level?: string;
-  total_count?: number;
   count?: number;
   start?: number;
   columns?: number;
