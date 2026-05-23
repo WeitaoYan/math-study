@@ -25,57 +25,59 @@ interface ProblemFactory {
  */
 function buildFactories(config: Config): ProblemFactory[] {
   const factories: ProblemFactory[] = [];
+  const { compact, columns } = config;
+  const totalCount = columns * 20;
 
   // 加法
-  const addCount = Math.floor(config.total_count * config.addition.ratio);
+  const addCount = Math.floor(totalCount * config.addition.ratio);
   if (addCount > 0) {
     const { range_max: max, range_min: min, carry, round_to } = config.addition;
     factories.push({
       count: addCount,
-      generate: () => new Addition(max, min, carry, round_to).generate(),
+      generate: () => new Addition(max, min, carry, round_to, compact).generate(),
     });
   }
 
   // 减法
-  const subCount = Math.floor(config.total_count * config.subtraction.ratio);
+  const subCount = Math.floor(totalCount * config.subtraction.ratio);
   if (subCount > 0) {
     const { range_max: max, range_min: min, borrow, round_to } = config.subtraction;
     factories.push({
       count: subCount,
-      generate: () => new Subtraction(max, min, borrow, round_to).generate(),
+      generate: () => new Subtraction(max, min, borrow, round_to, compact).generate(),
     });
   }
 
   // 乘法
-  const mulCount = Math.floor(config.total_count * config.multiplication.ratio);
+  const mulCount = Math.floor(totalCount * config.multiplication.ratio);
   if (mulCount > 0) {
     const { factor_min: min, factor_max: max } = config.multiplication;
     factories.push({
       count: mulCount,
-      generate: () => new Multiplication(min, max).generate(),
+      generate: () => new Multiplication(min, max, compact).generate(),
     });
   }
 
   // 除法
-  const divCount = Math.floor(config.total_count * config.division.ratio);
+  const divCount = Math.floor(totalCount * config.division.ratio);
   if (divCount > 0) {
     const { factor_min: min, factor_max: max } = config.division;
     factories.push({
       count: divCount,
-      generate: () => new Division(min, max).generate(),
+      generate: () => new Division(min, max, compact).generate(),
     });
   }
 
   // 有余数除法
   const remCount = Math.floor(
-    config.total_count * config.division_with_remainder.ratio,
+    totalCount * config.division_with_remainder.ratio,
   );
   if (remCount > 0) {
     const { divisor_min: min, divisor_max: max } =
       config.division_with_remainder;
     factories.push({
       count: remCount,
-      generate: () => new DivisionWithRemainder(min, max).generate(),
+      generate: () => new DivisionWithRemainder(min, max, compact).generate(),
     });
   }
 
