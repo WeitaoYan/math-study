@@ -157,6 +157,19 @@
               </select>
             </div>
           </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-container">
+              <input
+                type="checkbox"
+                class="form-checkbox"
+                id="q_include_answers"
+                v-model="quick.include_answers"
+              />
+              <span class="checkmark"></span>
+              附带答案页
+            </label>
+          </div>
         </div>
       </div>
 
@@ -250,6 +263,7 @@ const downloadSuccess = ref(false);
 const quick = reactive({
   per_page_count: 100,
   columns: "auto",
+  include_answers: false,
 });
 
 // 选择级别
@@ -278,6 +292,7 @@ const generateMathProblems = async () => {
         level: selectedLevel.value,
         per_page_count: quick.per_page_count,
         columns: quick.columns,
+        include_answers: quick.include_answers,
       }),
     });
 

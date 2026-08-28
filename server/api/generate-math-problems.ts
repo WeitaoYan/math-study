@@ -6,10 +6,11 @@
  * - 自定义模式：传入完整配置参数
  */
 import { createDoc, responsePDF } from "../utils/PdfConfig";
-import { parseRequestBody } from "../utils/RequestConvert";
+import { parseRequestBody, parseBoolean } from "../utils/RequestConvert";
 import { getPresetConfig } from "../Math/LevelPresets";
 import { parseCustomConfig } from "../Math/RequestParser";
-import { renderPage } from "../renderer/PdfRenderer";
+import { generateProblems } from "../Math/ProblemGenerator";
+import { renderPage, renderAnswerPage } from "../renderer/PdfRenderer";
 import type { Config } from "../Math/Config";
 
 // ==================== 请求体类型定义 ====================
@@ -58,7 +59,7 @@ export default defineEventHandler(async (event) => {
       ? getPresetConfig(body.level)
       : parseCustomConfig(body);
 
-    // 快速模式下也允许覆盖「每页题数 / 列数」
+    // 快速模式下也允许覆盖「每页题数 / 列数 / 答案页」
     if (body.per_page_count) {
       const pp = parseInt(body.per_page_count, 10);
       if (Number.isFinite(pp) && pp > 0) config.per_page_count = pp;
@@ -71,11 +72,18 @@ export default defineEventHandler(async (event) => {
         if (!body.per_page_count) config.per_page_count = c * 20;
       }
     }
+    if (body.include_answers !== undefined) {
+      config.include_answers = parseBoolean(body.include_answers);
+    }
 
-    // 3. 生成 PDF：逐页渲染
+    // 3. 生成 PDF：每组先生成一次题目，再渲染题目页与（可选的）答案页
     const doc = await createDoc();
     for (let i = 0; i < config.count; i++) {
-      renderPage(doc, i, config);
+      const problems = generateProblems(config);
+      renderPage(doc, i, config, problems);
+      if (config.include_answers) {
+        renderAnswerPage(doc, i, config, problems);
+      }
     }
 
     // 4. 返回 PDF

@@ -71,6 +71,19 @@
                 <span class="help-text">自动时按数值范围推算</span>
               </div>
             </div>
+
+            <div class="form-group checkbox-group">
+              <label class="checkbox-container">
+                <input
+                  type="checkbox"
+                  class="form-checkbox"
+                  id="include_answers"
+                  v-model="form.include_answers"
+                />
+                <span class="checkmark"></span>
+                附带答案页（每组题后附对应答案）
+              </label>
+            </div>
           </div>
         </div>
 
