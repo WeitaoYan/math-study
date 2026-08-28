@@ -10,6 +10,7 @@ import {
   reshapeToTable,
   createDateHeaders,
   createScoreFooters,
+  resolveLayout,
 } from "./PdfLayout";
 
 const S = PDF_STYLES;
@@ -52,25 +53,33 @@ function renderTable(doc: any, config: Config) {
   const problems = generateProblems(config);
   const problemTexts = problems.map((p) => p[0]); // 只取题目文本
 
+  // 由「每页题数 + 列数」反推行高与字号，并自动校正列数保证单页不溢出
+  const { columns, cellHeight, fontSize } = resolveLayout(
+    config.per_page_count,
+    config.columns,
+  );
+
   doc.setFont(S.font.name, S.font.style);
   autoTable(doc, {
-    head: [createDateHeaders(config.columns)],
-    body: reshapeToTable(problemTexts, config.columns),
+    head: [createDateHeaders(columns)],
+    body: reshapeToTable(problemTexts, columns),
     startY: S.page.startY,
     styles: {
       font: S.font.name,
       fontStyle: S.font.style,
-      fontSize: S.cell.fontSize,
-      minCellHeight: S.cell.minCellHeight,
+      fontSize,
+      minCellHeight: cellHeight,
       valign: "middle",
     },
     headStyles: {
       fillColor: S.headerFooter.fillColor,
       textColor: S.headerFooter.textColor,
+      minCellHeight: cellHeight,
     },
     footStyles: {
       fillColor: S.headerFooter.fillColor,
       textColor: S.headerFooter.textColor,
+      minCellHeight: cellHeight,
     },
     bodyStyles: {
       font: S.font.name,

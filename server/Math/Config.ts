@@ -71,6 +71,10 @@ export const empty_division_with_remainder_config: DivisionWithRemainderConfig =
 export interface Config {
   count: number;
   start: number;
+  /** 每页题目数量（决定单页排版行数，不再写死 columns*20） */
+  per_page_count: number;
+  /** 每页列数，可由用户覆盖，缺省按数值范围自动计算 */
+  columns: number;
   addition: AdditionConfig;
   subtraction: SubtractionConfig;
   multiplication: MultiplicationConfig;

@@ -127,6 +127,39 @@
         </div>
       </div>
 
+      <div class="config-card basic-settings">
+        <div class="card-header">
+          <h2 class="card-title">排版设置</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group half-width">
+              <label for="q_per_page_count" class="form-label">每页题数</label>
+              <select
+                id="q_per_page_count"
+                v-model.number="quick.per_page_count"
+                class="form-input"
+              >
+                <option :value="20">20 题</option>
+                <option :value="50">50 题</option>
+                <option :value="100">100 题</option>
+                <option :value="200">200 题</option>
+              </select>
+            </div>
+            <div class="form-group half-width">
+              <label for="q_columns" class="form-label">每页列数</label>
+              <select id="q_columns" v-model="quick.columns" class="form-input">
+                <option value="auto">自动</option>
+                <option :value="3">3 列</option>
+                <option :value="4">4 列</option>
+                <option :value="5">5 列</option>
+                <option :value="6">6 列</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="form-actions">
         <button
           type="submit"
@@ -213,6 +246,12 @@ const selectedLevel = ref<string | null>(null);
 const loading = ref(false);
 const downloadSuccess = ref(false);
 
+// 排版设置（每页题数 / 列数），快速模式可覆盖预设
+const quick = reactive({
+  per_page_count: 100,
+  columns: "auto",
+});
+
 // 选择级别
 const selectLevel = (level: string) => {
   selectedLevel.value = level;
@@ -235,7 +274,11 @@ const generateMathProblems = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ level: selectedLevel.value }),
+      body: JSON.stringify({
+        level: selectedLevel.value,
+        per_page_count: quick.per_page_count,
+        columns: quick.columns,
+      }),
     });
 
     if (!response.ok) {

@@ -38,6 +38,39 @@
               />
               <span class="help-text">第一组题目的编号</span>
             </div>
+
+            <div class="form-row">
+              <div class="form-group half-width">
+                <label for="per_page_count" class="form-label">每页题数</label>
+                <select
+                  id="per_page_count"
+                  v-model.number="form.per_page_count"
+                  class="form-input"
+                >
+                  <option :value="20">20 题</option>
+                  <option :value="50">50 题</option>
+                  <option :value="100">100 题</option>
+                  <option :value="200">200 题</option>
+                </select>
+                <span class="help-text">单页题目数量，字号随题数自适配</span>
+              </div>
+
+              <div class="form-group half-width">
+                <label for="columns" class="form-label">每页列数</label>
+                <select
+                  id="columns"
+                  v-model="form.columns"
+                  class="form-input"
+                >
+                  <option value="auto">自动</option>
+                  <option :value="3">3 列</option>
+                  <option :value="4">4 列</option>
+                  <option :value="5">5 列</option>
+                  <option :value="6">6 列</option>
+                </select>
+                <span class="help-text">自动时按数值范围推算</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -397,6 +430,8 @@ useHead({
 const form = reactive({
   count: 10,
   start: 1,
+  per_page_count: 100,
+  columns: "auto",
   include_answers: false,
 
   addition_ratio: 15,

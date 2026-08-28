@@ -17,7 +17,8 @@ export interface RequestBody {
   level?: string;
   count?: number;
   start?: number;
-  columns?: number;
+  columns?: string;
+  per_page_count?: string;
   include_answers?: string;
   addition_ratio?: string;
   addition_range_min?: string;
@@ -53,9 +54,23 @@ export default defineEventHandler(async (event) => {
     const body = parseRequestBody(rawBody, event) as RequestBody;
 
     // 2. 构建配置（快速预设 or 自定义参数）
-    const config: Config = body.level
+    let config: Config = body.level
       ? getPresetConfig(body.level)
       : parseCustomConfig(body);
+
+    // 快速模式下也允许覆盖「每页题数 / 列数」
+    if (body.per_page_count) {
+      const pp = parseInt(body.per_page_count, 10);
+      if (Number.isFinite(pp) && pp > 0) config.per_page_count = pp;
+    }
+    if (body.columns) {
+      const c = parseInt(body.columns, 10);
+      if (Number.isFinite(c) && c > 0) {
+        config.columns = c;
+        // 列数变化后，若未显式指定题数，按列数*20 重新推算
+        if (!body.per_page_count) config.per_page_count = c * 20;
+      }
+    }
 
     // 3. 生成 PDF：逐页渲染
     const doc = await createDoc();

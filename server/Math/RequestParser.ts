@@ -19,12 +19,22 @@ export function parseCustomConfig(body: RequestBody): Config {
     10,
   );
   const max_number = Math.max(subtraction_range_max, addition_range_max);
-  const columns = calcColumns(max_number);
+  const autoColumns = calcColumns(max_number);
+  // 列数：用户显式传入且合法则使用，否则按数值范围自动计算
+  const columns =
+    body.columns && Number.isFinite(parseInt(body.columns, 10)) && parseInt(body.columns, 10) > 0
+      ? parseInt(body.columns, 10)
+      : autoColumns;
+  // 每页题数：缺省按 列数*20（与历史行为一致）
+  const per_page_count = body.per_page_count
+    ? Math.max(1, parseInt(body.per_page_count, 10) || columns * 20)
+    : columns * 20;
 
   return {
     count: body.count ?? 10,
     start: body.start ?? 1,
     columns,
+    per_page_count,
     include_answers: parseBoolean(body.include_answers),
     compact: calcCompact(max_number),
 

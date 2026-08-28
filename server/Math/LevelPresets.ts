@@ -35,6 +35,7 @@ function quickConfig(overrides: Partial<Config>): Config {
   return {
     count: COUNT,
     start: 1,
+    per_page_count: COLUMNS * 20,
     addition: empty_addition_config,
     subtraction: empty_subtraction_config,
     multiplication: empty_multiplication_config,
@@ -241,6 +242,7 @@ export function getPresetConfig(level: string): Config {
   return {
     ...config,
     columns: calcColumns(maxNumber),
+    per_page_count: calcColumns(maxNumber) * 20,
     compact: calcCompact(maxNumber),
   };
 }

@@ -25,8 +25,8 @@ interface ProblemFactory {
  */
 function buildFactories(config: Config): ProblemFactory[] {
   const factories: ProblemFactory[] = [];
-  const { compact, columns } = config;
-  const totalCount = columns * 20;
+  const { compact, columns, per_page_count } = config;
+  const totalCount = per_page_count;
 
   // 加法
   const addCount = Math.floor(totalCount * config.addition.ratio);
