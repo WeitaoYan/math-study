@@ -16,6 +16,9 @@ class BaseMathProblem {
   /** 是否在符号两边添加空格，默认开启 */
   spacing = true;
 
+  /** 填空模式：'left' | 'right' | 'result' | 'none'，未设置则随机隐藏 */
+  fillMode?: string;
+
   /**
    * 格式化题目各部分，根据 spacing 开关决定是否加空格
    * @param parts 各部分字符串，依次为：左操作数、运算符、右操作数、=、结果
@@ -40,8 +43,19 @@ class BaseMathProblem {
     choice?: string,
   ): [string, string] {
     const choices = ["left", "right", "result"];
+    const raw = choice || this.fillMode;
     const selectedChoice =
-      choice || choices[Math.floor(Math.random() * choices.length)];
+      raw === "left" || raw === "right" || raw === "result" || raw === "none"
+        ? raw
+        : choices[Math.floor(Math.random() * choices.length)];
+
+    // 不填空：输出完整算式（无 ___ 占位）
+    if (selectedChoice === "none") {
+      return [
+        this.fmt([`${left}`, this.symbol, `${right}`, "=", `${result}`]),
+        `${result}`,
+      ];
+    }
 
     let problem, answer;
     if (selectedChoice === "left") {
@@ -309,14 +323,25 @@ export class DivisionWithRemainder extends BaseMathProblem {
       // 将余数加到被除数上
       dividend = dividend + remainder;
 
-      // 格式：被除数 ÷ 除数 = ___ ... ___
-      const problem = this.fmt([
-        `${dividend}`,
-        this.symbol,
-        `${divisor}`,
-        "=",
-        "___",
-      ]);
+      // 格式：被除数 ÷ 除数 = ___ ... ___（none 模式输出完整算式）
+      const problem =
+        this.fillMode === "none"
+          ? this.fmt([
+              `${dividend}`,
+              this.symbol,
+              `${divisor}`,
+              "=",
+              `${quotient}`,
+              "······",
+              `${remainder}`,
+            ])
+          : this.fmt([
+              `${dividend}`,
+              this.symbol,
+              `${divisor}`,
+              "=",
+              "___",
+            ]);
       return [problem, `${quotient}······${remainder}`];
     }
   }

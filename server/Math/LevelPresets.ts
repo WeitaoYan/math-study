@@ -44,6 +44,7 @@ function quickConfig(overrides: Partial<Config>): Config {
     include_answers: false,
     columns: COLUMNS,
     compact: false,
+    fill_mode: "random",
     ...overrides,
   };
 }

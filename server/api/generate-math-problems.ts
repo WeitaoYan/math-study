@@ -21,6 +21,7 @@ export interface RequestBody {
   columns?: string;
   per_page_count?: string;
   include_answers?: string;
+  fill_mode?: string;
   addition_ratio?: string;
   addition_range_min?: string;
   addition_range_max?: string;
@@ -74,6 +75,9 @@ export default defineEventHandler(async (event) => {
     }
     if (body.include_answers !== undefined) {
       config.include_answers = parseBoolean(body.include_answers);
+    }
+    if (body.fill_mode) {
+      config.fill_mode = body.fill_mode;
     }
 
     // 3. 生成 PDF：每组先生成一次题目，再渲染题目页与（可选的）答案页

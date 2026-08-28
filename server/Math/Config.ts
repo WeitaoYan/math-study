@@ -84,4 +84,6 @@ export interface Config {
   columns: number;
   /** 紧凑模式：关闭符号两边的空格 */
   compact: boolean;
+  /** 填空模式：'random' | 'result' | 'left' | 'right' | 'none' */
+  fill_mode: string;
 }

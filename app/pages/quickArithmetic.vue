@@ -170,6 +170,21 @@
               附带答案页
             </label>
           </div>
+
+          <div class="form-group">
+            <label for="q_fill_mode" class="form-label">填空模式</label>
+            <select
+              id="q_fill_mode"
+              v-model="quick.fill_mode"
+              class="form-input"
+            >
+              <option value="random">随机填空（默认）</option>
+              <option value="result">隐藏结果</option>
+              <option value="left">隐藏左操作数</option>
+              <option value="right">隐藏右操作数</option>
+              <option value="none">不填空</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -264,6 +279,7 @@ const quick = reactive({
   per_page_count: 100,
   columns: "auto",
   include_answers: false,
+  fill_mode: "random",
 });
 
 // 选择级别
@@ -293,6 +309,7 @@ const generateMathProblems = async () => {
         per_page_count: quick.per_page_count,
         columns: quick.columns,
         include_answers: quick.include_answers,
+        fill_mode: quick.fill_mode,
       }),
     });
 

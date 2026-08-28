@@ -36,6 +36,7 @@ export function parseCustomConfig(body: RequestBody): Config {
     columns,
     per_page_count,
     include_answers: parseBoolean(body.include_answers),
+    fill_mode: body.fill_mode ?? "random",
     compact: calcCompact(max_number),
 
     addition: {

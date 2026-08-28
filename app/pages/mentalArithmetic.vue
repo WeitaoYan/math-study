@@ -84,6 +84,22 @@
                 附带答案页（每组题后附对应答案）
               </label>
             </div>
+
+            <div class="form-group">
+              <label for="fill_mode" class="form-label">填空模式</label>
+              <select
+                id="fill_mode"
+                v-model="form.fill_mode"
+                class="form-input"
+              >
+                <option value="random">随机填空（默认）</option>
+                <option value="result">隐藏结果（a ○ b = ___）</option>
+                <option value="left">隐藏左操作数（___ ○ b = c）</option>
+                <option value="right">隐藏右操作数（a ○ ___ = c）</option>
+                <option value="none">不填空（完整算式）</option>
+              </select>
+              <span class="help-text">专项训练逆向思维，可配合答案页使用</span>
+            </div>
           </div>
         </div>
 
@@ -446,6 +462,7 @@ const form = reactive({
   per_page_count: 100,
   columns: "auto",
   include_answers: false,
+  fill_mode: "random",
 
   addition_ratio: 15,
   addition_range_min: 20,
