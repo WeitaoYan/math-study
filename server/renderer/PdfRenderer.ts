@@ -172,7 +172,7 @@ function renderMultiStepPage(
   const base = "脱式计算";
   const label = answerMode
     ? `${base}答案第${pageIndex + config.start}组`
-    : `${base}第${pageIndex + config.start}组`;
+    : `${base}(${pageIndex + config.start}组)`;
   doc.setTextColor(0, 0, 0);
   doc.text(label, P.width / 2, P.headerTitleY, { align: "center" });
 
