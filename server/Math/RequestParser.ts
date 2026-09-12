@@ -18,7 +18,15 @@ export function parseCustomConfig(body: RequestBody): Config {
     body.subtraction_range_max ?? "100",
     10,
   );
-  const max_number = Math.max(subtraction_range_max, addition_range_max);
+  const multi_step_range_max = parseInt(
+    body.multi_step_range_max ?? "100",
+    10,
+  );
+  const max_number = Math.max(
+    subtraction_range_max,
+    addition_range_max,
+    multi_step_range_max,
+  );
   const autoColumns = calcColumns(max_number);
   // 列数：用户显式传入且合法则使用，否则按数值范围自动计算
   const columns =
@@ -73,6 +81,13 @@ export function parseCustomConfig(body: RequestBody): Config {
         body.division_with_remainder_divisor_max ?? "9",
         10,
       ),
+    },
+    multi_step: {
+      ratio: parseFloat(body.multi_step_ratio ?? "0") / 100,
+      range_min: parseInt(body.multi_step_range_min ?? "10", 10),
+      range_max: multi_step_range_max,
+      terms: parseInt(body.multi_step_terms ?? "3", 10),
+      use_mul_div: parseBoolean(body.multi_step_use_mul_div),
     },
   };
 }

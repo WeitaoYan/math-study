@@ -41,6 +41,11 @@ export interface RequestBody {
   division_with_remainder_ratio?: string;
   division_with_remainder_divisor_min?: string;
   division_with_remainder_divisor_max?: string;
+  multi_step_ratio?: string;
+  multi_step_range_min?: string;
+  multi_step_range_max?: string;
+  multi_step_terms?: string;
+  multi_step_use_mul_div?: string;
 }
 
 // ==================== API Handler ====================

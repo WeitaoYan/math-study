@@ -241,6 +241,130 @@ export class Subtraction extends BaseMathProblem {
 }
 
 /**
+ * 脱式计算（多步混合运算）题
+ * 生成形如「a ○ b ○ c = ___」的连算表达式，每个中间步骤的结果均保持在 [min, max] 内。
+ * 返回 [题目, 答案, 各步骤算式]：步骤用于答案页逐行展示计算过程。
+ */
+export class MultiStep extends BaseMathProblem {
+  /** @type {string} */
+  symbol = "";
+  terms: number;
+  min: number;
+  max: number;
+  useMulDiv: boolean;
+
+  /**
+   * @param {number} terms - 参与运算的数字个数（3 = 两步，4 = 三步）
+   * @param {number} min - 操作数与每一步结果的最小值
+   * @param {number} max - 操作数与每一步结果的最大值
+   * @param {boolean} useMulDiv - 是否包含乘除运算
+   */
+  constructor(terms = 3, min = 10, max = 100, useMulDiv = false, compact = false) {
+    super();
+    this.terms = Math.max(2, Math.min(4, Math.round(terms)));
+    this.spacing = !compact;
+    this.min = min;
+    this.max = max;
+    this.useMulDiv = useMulDiv;
+  }
+
+  /** 生成一道脱式计算题 */
+  generate(): [string, string, string[]] {
+    const ops = this.useMulDiv ? ["+", "-", "×", "÷"] : ["+", "-"];
+    for (let attempt = 0; attempt < 5000; attempt++) {
+      const built = this.tryBuild(ops);
+      if (built) return built;
+    }
+    throw new Error(
+      "配置无法生成脱式计算题：数值范围过小，请增大最大值或减小参与数字个数",
+    );
+  }
+
+  /** 在范围内随机抽取一个整数 */
+  private rand(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  /** 尝试构造一道题，任意一步找不到可行操作数则返回 null */
+  private tryBuild(
+    ops: string[],
+  ): [string, string, string[]] | null {
+    const nums: number[] = [];
+    const opers: string[] = [];
+    const steps: string[] = [];
+
+    let cur = this.rand(this.min, this.max);
+    nums.push(cur);
+
+    for (let i = 0; i < this.terms - 1; i++) {
+      const op = ops[this.rand(0, ops.length - 1)];
+      let next = 0;
+      let ok = false;
+      // 给每个运算符留出重试空间，保证每一步都落在范围内
+      for (let t = 0; t < 300; t++) {
+        next = this.rand(this.min, this.max);
+        if (op === "+") {
+          if (cur + next <= this.max) {
+            ok = true;
+            break;
+          }
+        } else if (op === "-") {
+          if (cur - next >= this.min) {
+            ok = true;
+            break;
+          }
+        } else if (op === "×") {
+          if (cur * next <= this.max) {
+            ok = true;
+            break;
+          }
+        } else if (op === "÷") {
+          // 整除且结果不小于下限，除数不能为 0
+          if (next !== 0 && cur % next === 0 && cur / next >= this.min) {
+            ok = true;
+            break;
+          }
+        }
+      }
+      if (!ok) return null;
+
+      opers.push(op);
+      nums.push(next);
+      const r = this.applyOp(cur, op, next);
+      steps.push(`${cur} ${op} ${next} = ${r}`);
+      cur = r;
+    }
+
+    const parts: string[] = [];
+    for (let i = 0; i < nums.length; i++) {
+      parts.push(`${nums[i]}`);
+      if (i < opers.length) parts.push(opers[i]);
+    }
+    return [
+      `${parts.join(" ")} = ___`,
+      `${cur}`,
+      steps,
+    ];
+  }
+
+  /** 计算单步结果 */
+  private applyOp(a: number, op: string, b: number): number {
+    switch (op) {
+      case "+":
+        return a + b;
+      case "-":
+        return a - b;
+      case "×":
+        return a * b;
+      case "÷":
+        return a / b;
+      default:
+        return a + b;
+    }
+  }
+}
+
+/**
  * 乘法题
  */
 export class Multiplication extends BaseMathProblem {

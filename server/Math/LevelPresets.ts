@@ -9,6 +9,7 @@ import {
   empty_multiplication_config,
   empty_division_config,
   empty_division_with_remainder_config,
+  empty_multi_step_config,
 } from "./Config";
 
 // -------------------- 通用默认值 --------------------
@@ -41,6 +42,7 @@ function quickConfig(overrides: Partial<Config>): Config {
     multiplication: empty_multiplication_config,
     division: empty_division_config,
     division_with_remainder: empty_division_with_remainder_config,
+    multi_step: empty_multi_step_config,
     include_answers: false,
     columns: COLUMNS,
     compact: false,

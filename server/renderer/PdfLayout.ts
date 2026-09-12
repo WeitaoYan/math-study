@@ -18,6 +18,12 @@ export const PAGE = {
 /** autoTable 实际最小行高(mm) */
 export const MIN_ROW = 5;
 
+/** 脱式计算每题下方的空白行数（写计算过程的格子行） */
+export const STEP_ROWS = 5;
+
+/** 脱式计算单题占据的表格行数：1 行表达式 + 5 行空白 */
+export const STEP_BLOCK = STEP_ROWS + 1;
+
 /**
  * 根据「每页题数 + 列数」反推排版参数，保证单页不溢出。
  *
@@ -107,8 +113,88 @@ export function createDateHeaders(columns: number): string[] {
 }
 
 /**
- * 生成表格表尾行（成绩栏）
+ * 生成表尾行（成绩栏）
  */
 export function createScoreFooters(columns: number): string[] {
   return Array(columns).fill("成绩");
+}
+
+/**
+ * 把占位符 ___ 替换为答案（答案页使用）
+ */
+export function solveProblem(problem: string, answer: string): string {
+  return problem.replace(/_{3,}/g, answer);
+}
+
+/**
+ * 脱式计算排版：
+ * 每道题占据 STEP_BLOCK(=6) 行表格——第 1 行写算式，其后 5 行留白供书写计算过程。
+ * 同时按可用高度强制列数，保证任何题数下都单页容纳、不触发自动分页。
+ *
+ * @returns columns 实际列数, cellHeight 单格高度(mm), fontSize 字号(pt)
+ */
+export function resolveMultiStepLayout(
+  perPage: number,
+  columns: number,
+): { columns: number; cellHeight: number; fontSize: number } {
+  const safePerPage = Math.max(1, perPage);
+  const availH = PAGE.tableBottom - PAGE.tableTop;
+  // 单页最多容纳的块行数（每块 STEP_BLOCK 行，含顶部日期行与底部成绩行）
+  const maxBlockRows = Math.floor((availH / MIN_ROW - 2) / STEP_BLOCK);
+  const minColsByHeight = Math.max(3, Math.ceil(safePerPage / maxBlockRows));
+  const effCols = Math.max(1, Math.max(columns, minColsByHeight));
+
+  const blockRows = Math.ceil(safePerPage / effCols);
+  const totalRows = blockRows * STEP_BLOCK + 2; // + 表头 + 表尾
+  const cellHeight = Math.max(
+    MIN_ROW,
+    Math.floor(((availH - 1.5) / totalRows) * 100) / 100,
+  );
+
+  const colW = (PAGE.width - PAGE.marginX * 2) / effCols;
+  const byHeight = cellHeight / 0.95;
+  const byWidth = colW * 0.386;
+  const fontSize = Math.round(
+    Math.max(4, Math.min(22, Math.min(byHeight, byWidth))),
+  );
+
+  return { columns: effCols, cellHeight, fontSize };
+}
+
+/**
+ * 脱式计算题目一维数组 → 表格行。
+ * 每题展开为 STEP_BLOCK 行：第 1 行为算式，其余为空白（答案页填步骤）。
+ *
+ * @param entries [题目, 答案, 步骤?][]，步骤仅供答案页逐行展示
+ * @param answerMode true 时第 1 行填完整算式（= 答案），后续行展示步骤
+ */
+export function reshapeMultiStep(
+  entries: [string, string, string[]?][],
+  columns: number,
+  answerMode: boolean,
+): string[][] {
+  const grid: string[][] = [];
+  const blockRows = Math.ceil(entries.length / columns);
+
+  for (let b = 0; b < blockRows; b++) {
+    for (let r = 0; r < STEP_BLOCK; r++) {
+      const row: string[] = [];
+      for (let c = 0; c < columns; c++) {
+        const idx = b * columns + c;
+        if (idx >= entries.length) {
+          row.push("");
+          continue;
+        }
+        const [problem, answer, steps] = entries[idx]!;
+        if (r === 0) {
+          row.push(answerMode ? solveProblem(problem, answer) : problem);
+        } else {
+          const line = answerMode ? (steps ?? [])[r - 1] : "";
+          row.push(line ?? "");
+        }
+      }
+      grid.push(row);
+    }
+  }
+  return grid;
 }

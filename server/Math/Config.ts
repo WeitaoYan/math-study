@@ -68,6 +68,24 @@ export const empty_division_with_remainder_config: DivisionWithRemainderConfig =
     divisor_max: 0,
   };
 
+export interface MultiStepConfig {
+  ratio: number;
+  range_min: number;
+  range_max: number;
+  /** 参与运算的数字个数：3 = 两步，4 = 三步 */
+  terms: number;
+  /** 是否允许乘除运算（false 时仅加减混合） */
+  use_mul_div: boolean;
+}
+
+export const empty_multi_step_config: MultiStepConfig = {
+  ratio: 0,
+  range_min: 0,
+  range_max: 0,
+  terms: 3,
+  use_mul_div: false,
+};
+
 export interface Config {
   count: number;
   start: number;
@@ -80,6 +98,8 @@ export interface Config {
   multiplication: MultiplicationConfig;
   division: DivisionConfig;
   division_with_remainder: DivisionWithRemainderConfig;
+  /** 脱式计算（多步混合运算，每题下方留空行写计算过程） */
+  multi_step: MultiStepConfig;
   include_answers: boolean;
   columns: number;
   /** 紧凑模式：关闭符号两边的空格 */

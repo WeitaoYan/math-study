@@ -10,19 +10,16 @@ import {
   createDateHeaders,
   createScoreFooters,
   resolveLayout,
+  resolveMultiStepLayout,
+  reshapeMultiStep,
+  solveProblem,
 } from "./PdfLayout";
+import type { Config } from "../Math/Config";
 
 const S = PDF_STYLES;
 
-/** 题目条目：[题目文本(含 ___ 占位), 答案文本] */
-type ProblemEntry = [string, string];
-
-/**
- * 将题目文本中的占位符 ___ 替换为答案，得到完整算式（用于答案页）
- */
-function solve(entry: ProblemEntry): string {
-  return entry[0].replace(/_{3,}/g, entry[1]);
-}
+/** 题目条目：[题目文本(含 ___ 占位), 答案文本, 脱式计算步骤(可选)] */
+type ProblemEntry = [string, string, string[]?];
 
 /**
  * 渲染一组题目的「题目页」
@@ -39,7 +36,7 @@ export function renderPage(
   }
 
   renderHeader(doc);
-  renderTitle(doc, pageIndex, config.start, false);
+  renderTitle(doc, pageIndex, config, false);
   renderTable(doc, config, problems, false);
 }
 
@@ -56,7 +53,7 @@ export function renderAnswerPage(
   doc.addPage();
 
   renderHeader(doc);
-  renderTitle(doc, pageIndex, config.start, true);
+  renderTitle(doc, pageIndex, config, true);
   renderTable(doc, config, problems, true);
 }
 
@@ -72,14 +69,15 @@ function renderHeader(doc: any) {
 function renderTitle(
   doc: any,
   pageIndex: number,
-  start: number,
+  config: Config,
   isAnswer: boolean,
 ) {
   doc.setFont(S.font.name, S.font.style);
   doc.setFontSize(S.title.fontSize);
+  const base = config.multi_step.ratio > 0 ? "脱式计算" : "小学生口算题";
   const label = isAnswer
-    ? `小学生口算题答案(第${pageIndex + start}组)`
-    : `小学生口算题(第${pageIndex + start}组)`;
+    ? `${base}答案(第${pageIndex + config.start}组)`
+    : `${base}(第${pageIndex + config.start}组)`;
   doc.text(label, 105, S.title.y, { align: "center" });
 }
 
@@ -94,6 +92,11 @@ function renderTable(
   problems: ProblemEntry[],
   answerMode: boolean,
 ) {
+  // 脱式计算：每题在表格中占 6 行（1 行算式 + 5 行留白），走专用排版
+  if (config.multi_step.ratio > 0) {
+    return renderMultiStepTable(doc, config, problems, answerMode);
+  }
+
   // 由「每页题数 + 列数」反推行高与字号，并自动校正列数保证单页不溢出
   const { columns, cellHeight, fontSize } = resolveLayout(
     config.per_page_count,
@@ -101,13 +104,59 @@ function renderTable(
   );
 
   const texts = problems.map((p) =>
-    answerMode ? solve(p) : p[0],
+    answerMode ? solveProblem(p[0], p[1]) : p[0],
   );
 
   doc.setFont(S.font.name, S.font.style);
   autoTable(doc, {
     head: [createDateHeaders(columns)],
     body: reshapeToTable(texts, columns),
+    startY: S.page.startY,
+    styles: {
+      font: S.font.name,
+      fontStyle: S.font.style,
+      fontSize,
+      minCellHeight: cellHeight,
+      valign: "middle",
+    },
+    headStyles: {
+      fillColor: S.headerFooter.fillColor,
+      textColor: S.headerFooter.textColor,
+      minCellHeight: cellHeight,
+    },
+    footStyles: {
+      fillColor: S.headerFooter.fillColor,
+      textColor: S.headerFooter.textColor,
+      minCellHeight: cellHeight,
+    },
+    bodyStyles: {
+      font: S.font.name,
+      fontStyle: S.font.style,
+    },
+    theme: S.tableTheme,
+    foot: [createScoreFooters(columns)],
+  });
+}
+
+/**
+ * 渲染脱式计算表格
+ * 每题 = 1 行算式 + 5 行空白；答案页第 1 行填完整算式，后 5 行展示计算步骤。
+ */
+function renderMultiStepTable(
+  doc: any,
+  config: Config,
+  problems: ProblemEntry[],
+  answerMode: boolean,
+) {
+  const { columns, cellHeight, fontSize } = resolveMultiStepLayout(
+    config.per_page_count,
+    config.columns,
+  );
+
+  doc.setFont(S.font.name, S.font.style);
+  autoTable(doc, {
+    head: [createDateHeaders(columns)],
+    body: reshapeMultiStep(problems, columns, answerMode),
     startY: S.page.startY,
     styles: {
       font: S.font.name,

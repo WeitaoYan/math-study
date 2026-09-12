@@ -9,9 +9,11 @@ import {
   Multiplication,
   Division,
   DivisionWithRemainder,
+  MultiStep,
 } from "./ProblemTypes";
 
-type ProblemEntry = [string, string];
+/** 题目条目：[题目文本(含 ___ 占位), 答案文本, 脱式计算步骤(可选)] */
+type ProblemEntry = [string, string, string[]?];
 
 /** 题型生成器工厂项 */
 interface ProblemFactory {
@@ -77,6 +79,15 @@ function buildFactories(config: Config): ProblemFactory[] {
     const inst = new DivisionWithRemainder(min, max, compact);
     inst.fillMode = fillMode;
     factories.push({ count: remCount, generate: () => inst.generate() });
+  }
+
+  // 脱式计算
+  const msCount = Math.floor(totalCount * config.multi_step.ratio);
+  if (msCount > 0) {
+    const { range_min: min, range_max: max, terms, use_mul_div } =
+      config.multi_step;
+    const inst = new MultiStep(terms, min, max, use_mul_div, compact);
+    factories.push({ count: msCount, generate: () => inst.generate() });
   }
 
   return factories;
