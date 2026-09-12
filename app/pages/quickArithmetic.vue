@@ -129,49 +129,83 @@
 
       <div class="config-card basic-settings">
         <div class="card-header">
+          <svg
+            class="header-icon"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
           <h2 class="card-title">排版设置</h2>
         </div>
         <div class="card-body">
           <div class="form-row">
             <div class="form-group half-width">
-              <label for="q_per_page_count" class="form-label">每页题数</label>
-              <select
-                id="q_per_page_count"
-                v-model.number="quick.per_page_count"
-                class="form-input"
-              >
-                <option :value="20">20 题</option>
-                <option :value="50">50 题</option>
-                <option :value="100">100 题</option>
-                <option :value="200">200 题</option>
-              </select>
+              <label class="form-label">每页题数</label>
+              <div class="segmented" role="group" aria-label="每页题数">
+                <button
+                  v-for="opt in perPageOptions"
+                  :key="opt.value"
+                  type="button"
+                  class="seg-btn"
+                  :class="{ active: quick.per_page_count === opt.value }"
+                  @click="quick.per_page_count = opt.value"
+                >
+                  {{ opt.label }}
+                </button>
+              </div>
+              <span class="help-text">字号随题数自动适配</span>
             </div>
+
             <div class="form-group half-width">
-              <label for="q_columns" class="form-label">每页列数</label>
-              <select id="q_columns" v-model="quick.columns" class="form-input">
-                <option value="auto">自动</option>
-                <option :value="3">3 列</option>
-                <option :value="4">4 列</option>
-                <option :value="5">5 列</option>
-                <option :value="6">6 列</option>
-              </select>
+              <label class="form-label">每页列数</label>
+              <div class="segmented" role="group" aria-label="每页列数">
+                <button
+                  v-for="opt in columnsOptions"
+                  :key="opt.value"
+                  type="button"
+                  class="seg-btn"
+                  :class="{ active: quick.columns === opt.value }"
+                  @click="quick.columns = opt.value"
+                >
+                  {{ opt.label }}
+                </button>
+              </div>
+              <span class="help-text">自动时按数值范围推算</span>
             </div>
           </div>
 
-          <div class="form-group checkbox-group">
-            <label class="checkbox-container">
-              <input
-                type="checkbox"
-                class="form-checkbox"
-                id="q_include_answers"
-                v-model="quick.include_answers"
-              />
-              <span class="checkmark"></span>
-              附带答案页
+          <div class="form-group no-margin">
+            <label class="switch-group">
+              <span>
+                <span class="switch-title">附带答案页</span>
+                <span class="switch-desc">每组题后附对应的标准答案</span>
+              </span>
+              <span class="switch">
+                <input
+                  type="checkbox"
+                  class="switch-input"
+                  v-model="quick.include_answers"
+                />
+                <span class="switch-track">
+                  <span class="switch-thumb"></span>
+                </span>
+              </span>
             </label>
           </div>
 
-          <div class="form-group">
+          <div class="divider"></div>
+
+          <div class="form-group no-margin">
             <label for="q_fill_mode" class="form-label">填空模式</label>
             <select
               id="q_fill_mode"
@@ -184,6 +218,7 @@
               <option value="right">隐藏右操作数</option>
               <option value="none">不填空</option>
             </select>
+            <span class="help-text">专项训练逆向思维，可配合答案页使用</span>
           </div>
         </div>
       </div>
@@ -281,6 +316,21 @@ const quick = reactive({
   include_answers: false,
   fill_mode: "random",
 });
+
+// 分段选择器选项
+const perPageOptions = [
+  { label: "20题", value: 20 },
+  { label: "50题", value: 50 },
+  { label: "100题", value: 100 },
+  { label: "200题", value: 200 },
+];
+const columnsOptions = [
+  { label: "自动", value: "auto" },
+  { label: "3列", value: "3" },
+  { label: "4列", value: "4" },
+  { label: "5列", value: "5" },
+  { label: "6列", value: "6" },
+];
 
 // 选择级别
 const selectLevel = (level: string) => {
@@ -551,6 +601,15 @@ const generateMathProblems = async () => {
     grid-template-columns: 1fr;
   }
 
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .half-width {
+    width: 100%;
+  }
+
   .math-generator-container {
     padding: 15px;
   }
@@ -559,7 +618,207 @@ const generateMathProblems = async () => {
     margin-bottom: 20px;
   }
 
-  .form-actions {
+.config-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.basic-settings {
+  margin-top: 10px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #4299e1 0%, #667eea 100%);
+  padding: 16px 20px;
+}
+
+.header-icon {
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.card-title {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group.no-margin {
+  margin-bottom: 0;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #2d3748;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #2d3748;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+}
+
+.help-text {
+  display: block;
+  font-size: 0.8rem;
+  color: #a0aec0;
+  margin-top: 6px;
+}
+
+/* 分段选择器 */
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+  gap: 4px;
+  background: #edf2f7;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.seg-btn {
+  border: none;
+  background: transparent;
+  padding: 9px 4px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.seg-btn:hover {
+  color: #2b6cb0;
+}
+
+.seg-btn.active {
+  background: #fff;
+  color: #3182ce;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* 开关切换 */
+.switch-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.switch-group:hover {
+  border-color: #a0aec0;
+}
+
+.switch-title {
+  display: block;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.switch-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 25px;
+  flex-shrink: 0;
+}
+
+.switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-track {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e0;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 21px;
+  height: 21px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.switch-input:checked + .switch-track {
+  background: #4299e1;
+}
+
+.switch-input:checked + .switch-track .switch-thumb {
+  transform: translateX(21px);
+}
+
+.switch-input:focus-visible + .switch-track {
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.35);
+}
+
+.divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 20px 0;
+}
+
+.form-actions {
     position: fixed;
     bottom: 20px;
     left: 50%;
