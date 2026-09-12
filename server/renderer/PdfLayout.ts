@@ -18,12 +18,6 @@ export const PAGE = {
 /** autoTable 实际最小行高(mm) */
 export const MIN_ROW = 5;
 
-/** 脱式计算每题下方的空白行数（写计算过程的格子行） */
-export const STEP_ROWS = 5;
-
-/** 脱式计算单题占据的表格行数：1 行表达式 + 5 行空白 */
-export const STEP_BLOCK = STEP_ROWS + 1;
-
 /**
  * 根据「每页题数 + 列数」反推排版参数，保证单页不溢出。
  *
@@ -127,74 +121,86 @@ export function solveProblem(problem: string, answer: string): string {
 }
 
 /**
- * 脱式计算排版：
- * 每道题占据 STEP_BLOCK(=6) 行表格——第 1 行写算式，其后 5 行留白供书写计算过程。
- * 同时按可用高度强制列数，保证任何题数下都单页容纳、不触发自动分页。
- *
- * @returns columns 实际列数, cellHeight 单格高度(mm), fontSize 字号(pt)
+ * 脱式计算专用页面版式（非表格，手工排版）
+ * A4 页面上：顶部标题 → 姓名 / 日期一行 → 分隔线 → 题目区域。
+ * 每题占据一块：1 行算式 + blankLines 行空白（供书写计算过程）。
+ * 行高由题目区域高度按块均分（≥ minLineHeight），列数不足时自动增列保证单页容纳。
  */
-export function resolveMultiStepLayout(
-  perPage: number,
-  columns: number,
-): { columns: number; cellHeight: number; fontSize: number } {
-  const safePerPage = Math.max(1, perPage);
-  const availH = PAGE.tableBottom - PAGE.tableTop;
-  // 单页最多容纳的块行数（每块 STEP_BLOCK 行，含顶部日期行与底部成绩行）
-  const maxBlockRows = Math.floor((availH / MIN_ROW - 2) / STEP_BLOCK);
-  const minColsByHeight = Math.max(3, Math.ceil(safePerPage / maxBlockRows));
-  const effCols = Math.max(1, Math.max(columns, minColsByHeight));
+export const MULTI_STEP_PAGE = {
+  width: 210,
+  height: 297,
+  marginX: 15,
+  /** 标题基线(mm) */
+  headerTitleY: 18,
+  /** 姓名 / 日期行基线(mm) */
+  headerInfoY: 30,
+  /** 标题下方分隔线 y(mm) */
+  headerRuleY: 34,
+  /** 题目区域起始 y(mm) */
+  contentTop: 44,
+  /** 页面底部留白(mm) */
+  bottomMargin: 15,
+  /** 每题下方留白行数（写计算过程） */
+  blankLines: 5,
+  minColumns: 2,
+  maxColumns: 4,
+  /** 单行最小高度(mm)，行高低于此则增列 */
+  minLineHeight: 6,
+};
 
-  const blockRows = Math.ceil(safePerPage / effCols);
-  const totalRows = blockRows * STEP_BLOCK + 2; // + 表头 + 表尾
-  const cellHeight = Math.max(
-    MIN_ROW,
-    Math.floor(((availH - 1.5) / totalRows) * 100) / 100,
-  );
-
-  const colW = (PAGE.width - PAGE.marginX * 2) / effCols;
-  const byHeight = cellHeight / 0.95;
-  const byWidth = colW * 0.386;
-  const fontSize = Math.round(
-    Math.max(4, Math.min(22, Math.min(byHeight, byWidth))),
-  );
-
-  return { columns: effCols, cellHeight, fontSize };
-}
+/** 脱式计算每题占据的行数：1 行算式 + 若干空白行 */
+export const MULTI_STEP_BLOCK =
+  MULTI_STEP_PAGE.blankLines + 1;
 
 /**
- * 脱式计算题目一维数组 → 表格行。
- * 每题展开为 STEP_BLOCK 行：第 1 行为算式，其余为空白（答案页填步骤）。
+ * 手工排版：算出列数、块行数、字号、行高。
+ * 字体上限先按列宽估算，渲染时再按实际最长算式微调。
  *
- * @param entries [题目, 答案, 步骤?][]，步骤仅供答案页逐行展示
- * @param answerMode true 时第 1 行填完整算式（= 答案），后续行展示步骤
+ * @returns columns 列数, rows 块行数, cellHeight 单行高度(mm), expressionFont 算式字号(pt)
  */
-export function reshapeMultiStep(
-  entries: [string, string, string[]?][],
+export function computeMultiStepPageLayout(
+  perPage: number,
   columns: number,
-  answerMode: boolean,
-): string[][] {
-  const grid: string[][] = [];
-  const blockRows = Math.ceil(entries.length / columns);
+): {
+  columns: number;
+  rows: number;
+  cellHeight: number;
+  expressionFont: number;
+} {
+  const P = MULTI_STEP_PAGE;
+  const contentH = P.height - P.contentTop - P.bottomMargin;
 
-  for (let b = 0; b < blockRows; b++) {
-    for (let r = 0; r < STEP_BLOCK; r++) {
-      const row: string[] = [];
-      for (let c = 0; c < columns; c++) {
-        const idx = b * columns + c;
-        if (idx >= entries.length) {
-          row.push("");
-          continue;
-        }
-        const [problem, answer, steps] = entries[idx]!;
-        if (r === 0) {
-          row.push(answerMode ? solveProblem(problem, answer) : problem);
-        } else {
-          const line = answerMode ? (steps ?? [])[r - 1] : "";
-          row.push(line ?? "");
-        }
-      }
-      grid.push(row);
-    }
+  // 先满足「每页恰好 perPage 题、单行高度不小于下限」的最小列数
+  let effCols = Math.max(
+    P.minColumns,
+    Math.min(P.maxColumns, Math.max(1, columns)),
+  );
+  let blockRows = Math.ceil(perPage / effCols);
+  const maxBlockRows = Math.floor(
+    contentH / (MULTI_STEP_BLOCK * P.minLineHeight),
+  );
+  while (blockRows > maxBlockRows && effCols < P.maxColumns) {
+    effCols++;
+    blockRows = Math.ceil(perPage / effCols);
   }
-  return grid;
+
+  const totalLines = blockRows * MULTI_STEP_BLOCK;
+  // 行高用满题目区域（保留 0.1mm 精度与少许余量，避免浮点越界）
+  const cellHeight = Math.max(
+    P.minLineHeight,
+    Math.floor((contentH / totalLines) * 10) / 10,
+  );
+
+  const colWidth = (P.width - P.marginX * 2) / effCols;
+  // 算式字号由列宽反推的上限（渲染时会再按文本实际宽度收窄）
+  const expressionFont = Math.round(
+    Math.max(10, Math.min(18, colWidth * 0.26)),
+  );
+
+  return {
+    columns: effCols,
+    rows: blockRows,
+    cellHeight,
+    expressionFont,
+  };
 }

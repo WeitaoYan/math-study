@@ -242,8 +242,9 @@ export class Subtraction extends BaseMathProblem {
 
 /**
  * 脱式计算（多步混合运算）题
- * 生成形如「a ○ b ○ c = ___」的连算表达式，每个中间步骤的结果均保持在 [min, max] 内。
- * 返回 [题目, 答案, 各步骤算式]：步骤用于答案页逐行展示计算过程。
+ * 生成形如「a ○ b ○ c = ___」的连算表达式。开启乘除混合时运算符从 +、-、×、÷ 中选取，
+ * 并按「先乘除、后加减」的优先级逐步化简生成步骤。
+ * 返回 [题目, 答案, 各步骤算式]：步骤为化简过程中的逐行剩余算式，用于答案页展示。
  */
 export class MultiStep extends BaseMathProblem {
   /** @type {string} */
@@ -255,9 +256,9 @@ export class MultiStep extends BaseMathProblem {
 
   /**
    * @param {number} terms - 参与运算的数字个数（3 = 两步，4 = 三步）
-   * @param {number} min - 操作数与每一步结果的最小值
-   * @param {number} max - 操作数与每一步结果的最大值
-   * @param {boolean} useMulDiv - 是否包含乘除运算
+   * @param {number} min - 加减操作数与最终结果的最小值
+   * @param {number} max - 加减操作数与最终结果的最大值
+   * @param {boolean} useMulDiv - 是否混入乘除运算
    */
   constructor(terms = 3, min = 10, max = 100, useMulDiv = false, compact = false) {
     super();
@@ -270,9 +271,8 @@ export class MultiStep extends BaseMathProblem {
 
   /** 生成一道脱式计算题 */
   generate(): [string, string, string[]] {
-    const ops = this.useMulDiv ? ["+", "-", "×", "÷"] : ["+", "-"];
-    for (let attempt = 0; attempt < 5000; attempt++) {
-      const built = this.tryBuild(ops);
+    for (let attempt = 0; attempt < 10000; attempt++) {
+      const built = this.tryBuild();
       if (built) return built;
     }
     throw new Error(
@@ -280,71 +280,86 @@ export class MultiStep extends BaseMathProblem {
     );
   }
 
-  /** 在范围内随机抽取一个整数 */
+  /** 在范围内随机抽取一个整数（含边界） */
   private rand(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  /** 尝试构造一道题，任意一步找不到可行操作数则返回 null */
-  private tryBuild(
-    ops: string[],
-  ): [string, string, string[]] | null {
+  /** 求 v 在 [lo, hi] 内的所有约数 */
+  private divisorsInRange(v: number, lo: number, hi: number): number[] {
+    const out: number[] = [];
+    for (let d = lo; d <= hi; d++) {
+      if (v % d === 0) out.push(d);
+    }
+    return out;
+  }
+
+  /** 尝试构造一道题，任何一步不满足约束则返回 null */
+  private tryBuild(): [string, string, string[]] | null {
+    const n = this.terms;
     const nums: number[] = [];
-    const opers: string[] = [];
-    const steps: string[] = [];
+    const ops: string[] = [];
 
-    let cur = this.rand(this.min, this.max);
-    nums.push(cur);
-
-    for (let i = 0; i < this.terms - 1; i++) {
-      const op = ops[this.rand(0, ops.length - 1)];
-      let next = 0;
-      let ok = false;
-      // 给每个运算符留出重试空间，保证每一步都落在范围内
-      for (let t = 0; t < 300; t++) {
-        next = this.rand(this.min, this.max);
-        if (op === "+") {
-          if (cur + next <= this.max) {
-            ok = true;
-            break;
-          }
-        } else if (op === "-") {
-          if (cur - next >= this.min) {
-            ok = true;
-            break;
-          }
-        } else if (op === "×") {
-          if (cur * next <= this.max) {
-            ok = true;
-            break;
-          }
-        } else if (op === "÷") {
-          // 整除且结果不小于下限，除数不能为 0
-          if (next !== 0 && cur % next === 0 && cur / next >= this.min) {
-            ok = true;
-            break;
-          }
-        }
-      }
-      if (!ok) return null;
-
-      opers.push(op);
-      nums.push(next);
-      const r = this.applyOp(cur, op, next);
-      steps.push(`${cur} ${op} ${next} = ${r}`);
-      cur = r;
+    // 1. 先决定运算符（混入乘除时保证至少包含一次 × 或 ÷）
+    const pool = this.useMulDiv ? ["+", "-", "×", "÷"] : ["+", "-"];
+    for (let i = 0; i < n - 1; i++) {
+      ops.push(pool[this.rand(0, pool.length - 1)]!);
+    }
+    if (
+      this.useMulDiv &&
+      !ops.some((o) => o === "×" || o === "÷")
+    ) {
+      ops[this.rand(0, n - 2)] = Math.random() < 0.5 ? "×" : "÷";
     }
 
+    // 2. 再生成操作数：乘除的相邻数用 2..9 的小因子，加减用全区间
+    nums.push(this.rand(this.min, this.max));
+    for (let i = 1; i < n; i++) {
+      const op = ops[i - 1]!;
+      if (op === "×") {
+        nums.push(this.rand(2, 9));
+      } else if (op === "÷") {
+        const divisors = this.divisorsInRange(nums[i - 1]!, 2, 9);
+        if (divisors.length === 0) return null;
+        nums.push(divisors[this.rand(0, divisors.length - 1)]!);
+      } else {
+        nums.push(this.rand(this.min, this.max));
+      }
+    }
+
+    // 3. 按「先乘除、后加减」逐次化简，记录每一步的剩余算式
+    const nArr = [...nums];
+    const oArr = [...ops];
+    const steps: string[] = [];
+    const finalCap = Math.max(this.max * 1.5, this.min);
+    while (oArr.length > 0) {
+      let idx = oArr.findIndex((o) => o === "×" || o === "÷");
+      if (idx < 0) idx = 0;
+      const a = nArr[idx]!;
+      const b = nArr[idx + 1]!;
+      const op = oArr[idx]!;
+      const r = this.applyOp(a, op, b);
+      if (!Number.isInteger(r) || r < 1 || r > finalCap) return null;
+      nArr[idx] = r;
+      nArr.splice(idx + 1, 1);
+      oArr.splice(idx, 1);
+      const line: string[] = [];
+      for (let i = 0; i < nArr.length; i++) {
+        line.push(`${nArr[i]}`);
+        if (i < oArr.length) line.push(oArr[i]!);
+      }
+      steps.push(line.join(" "));
+    }
+    const final = nArr[0]!;
+    if (final < this.min || final > this.max) return null;
+
+    // 原表达式（第 1 行）
     const parts: string[] = [];
     for (let i = 0; i < nums.length; i++) {
       parts.push(`${nums[i]}`);
-      if (i < opers.length) parts.push(opers[i]);
+      if (i < ops.length) parts.push(ops[i]!);
     }
-    return [
-      `${parts.join(" ")} = ___`,
-      `${cur}`,
-      steps,
-    ];
+    return [`${parts.join(" ")} = ___`, `${final}`, steps];
   }
 
   /** 计算单步结果 */

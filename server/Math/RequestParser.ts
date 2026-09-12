@@ -87,7 +87,10 @@ export function parseCustomConfig(body: RequestBody): Config {
       range_min: parseInt(body.multi_step_range_min ?? "10", 10),
       range_max: multi_step_range_max,
       terms: parseInt(body.multi_step_terms ?? "3", 10),
-      use_mul_div: parseBoolean(body.multi_step_use_mul_div),
+      use_mul_div:
+        body.multi_step_use_mul_div === undefined
+          ? true
+          : parseBoolean(body.multi_step_use_mul_div),
     },
   };
 }

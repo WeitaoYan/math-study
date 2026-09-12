@@ -144,7 +144,7 @@
                   v-model="form.multi_step_use_mul_div"
                 />
                 <span class="checkmark"></span>
-                允许乘除运算（不勾选则仅加减混合）
+                允许乘除运算（勾选后题目会混入 ×、÷；不勾选则仅加减混合）
               </label>
             </div>
           </div>
@@ -195,7 +195,7 @@ const form = reactive({
   multi_step_range_min: 10,
   multi_step_range_max: 100,
   multi_step_terms: 3,
-  multi_step_use_mul_div: false,
+  multi_step_use_mul_div: true,
 });
 
 const loading = ref(false);

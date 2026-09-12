@@ -83,7 +83,7 @@ export const empty_multi_step_config: MultiStepConfig = {
   range_min: 0,
   range_max: 0,
   terms: 3,
-  use_mul_div: false,
+  use_mul_div: true,
 };
 
 export interface Config {

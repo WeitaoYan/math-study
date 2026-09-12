@@ -10,11 +10,11 @@ import {
   createDateHeaders,
   createScoreFooters,
   resolveLayout,
-  resolveMultiStepLayout,
-  reshapeMultiStep,
   solveProblem,
+  computeMultiStepPageLayout,
+  MULTI_STEP_PAGE,
+  MULTI_STEP_BLOCK,
 } from "./PdfLayout";
-import type { Config } from "../Math/Config";
 
 const S = PDF_STYLES;
 
@@ -35,6 +35,12 @@ export function renderPage(
     doc.addPage();
   }
 
+  // 脱式计算走独立版式（标题 + 姓名/日期 + 手工排版题目区）
+  if (config.multi_step.ratio > 0) {
+    renderMultiStepPage(doc, pageIndex, config, problems, false);
+    return;
+  }
+
   renderHeader(doc);
   renderTitle(doc, pageIndex, config, false);
   renderTable(doc, config, problems, false);
@@ -51,6 +57,12 @@ export function renderAnswerPage(
   problems: ProblemEntry[],
 ) {
   doc.addPage();
+
+  // 脱式计算走独立版式（答案页：完整算式 + 逐步过程）
+  if (config.multi_step.ratio > 0) {
+    renderMultiStepPage(doc, pageIndex, config, problems, true);
+    return;
+  }
 
   renderHeader(doc);
   renderTitle(doc, pageIndex, config, true);
@@ -74,7 +86,7 @@ function renderTitle(
 ) {
   doc.setFont(S.font.name, S.font.style);
   doc.setFontSize(S.title.fontSize);
-  const base = config.multi_step.ratio > 0 ? "脱式计算" : "小学生口算题";
+  const base = "小学生口算题";
   const label = isAnswer
     ? `${base}答案(第${pageIndex + config.start}组)`
     : `${base}(第${pageIndex + config.start}组)`;
@@ -92,11 +104,6 @@ function renderTable(
   problems: ProblemEntry[],
   answerMode: boolean,
 ) {
-  // 脱式计算：每题在表格中占 6 行（1 行算式 + 5 行留白），走专用排版
-  if (config.multi_step.ratio > 0) {
-    return renderMultiStepTable(doc, config, problems, answerMode);
-  }
-
   // 由「每页题数 + 列数」反推行高与字号，并自动校正列数保证单页不溢出
   const { columns, cellHeight, fontSize } = resolveLayout(
     config.per_page_count,
@@ -139,47 +146,98 @@ function renderTable(
 }
 
 /**
- * 渲染脱式计算表格
- * 每题 = 1 行算式 + 5 行空白；答案页第 1 行填完整算式，后 5 行展示计算步骤。
+ * 渲染脱式计算整页（独立版式，不使用表格）
+ * 页面结构：标题 → 姓名/日期 → 分隔线 → 题目区。
+ * 每题一块：第 1 行为算式，其余 blankLines 行画书写引导线；
+ * 答案页在引导线上填入计算步骤。全部坐标/字号由 layout 计算得出。
  */
-function renderMultiStepTable(
+function renderMultiStepPage(
   doc: any,
+  pageIndex: number,
   config: Config,
   problems: ProblemEntry[],
   answerMode: boolean,
 ) {
-  const { columns, cellHeight, fontSize } = resolveMultiStepLayout(
-    config.per_page_count,
-    config.columns,
-  );
+  const P = MULTI_STEP_PAGE;
 
+  // 标题
   doc.setFont(S.font.name, S.font.style);
-  autoTable(doc, {
-    head: [createDateHeaders(columns)],
-    body: reshapeMultiStep(problems, columns, answerMode),
-    startY: S.page.startY,
-    styles: {
-      font: S.font.name,
-      fontStyle: S.font.style,
-      fontSize,
-      minCellHeight: cellHeight,
-      valign: "middle",
-    },
-    headStyles: {
-      fillColor: S.headerFooter.fillColor,
-      textColor: S.headerFooter.textColor,
-      minCellHeight: cellHeight,
-    },
-    footStyles: {
-      fillColor: S.headerFooter.fillColor,
-      textColor: S.headerFooter.textColor,
-      minCellHeight: cellHeight,
-    },
-    bodyStyles: {
-      font: S.font.name,
-      fontStyle: S.font.style,
-    },
-    theme: S.tableTheme,
-    foot: [createScoreFooters(columns)],
+  doc.setFontSize(S.title.fontSize);
+  const base = "脱式计算";
+  const label = answerMode
+    ? `${base}答案(第${pageIndex + config.start}组)`
+    : `${base}(第${pageIndex + config.start}组)`;
+  doc.setTextColor(0, 0, 0);
+  doc.text(label, P.width / 2, P.headerTitleY, { align: "center" });
+
+  // 姓名 / 日期
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`姓名：____________`, P.marginX, P.headerInfoY);
+  doc.text(`日期：____________`, P.width - P.marginX, P.headerInfoY, {
+    align: "right",
   });
+
+  // 标题分隔线
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.6);
+  doc.line(P.marginX, P.headerRuleY, P.width - P.marginX, P.headerRuleY);
+
+  const { columns, rows, cellHeight, expressionFont } =
+    computeMultiStepPageLayout(config.per_page_count, config.columns);
+
+  const colW = (P.width - P.marginX * 2) / columns;
+  const blockH = MULTI_STEP_BLOCK * cellHeight;
+  const innerPad = 2.5; // 块内左右留白(mm)
+  const contentH = rows * blockH;
+
+  // 列分隔线（浅灰）
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  for (let c = 1; c < columns; c++) {
+    const x = P.marginX + c * colW;
+    doc.line(x, P.contentTop, x, P.contentTop + contentH);
+  }
+
+  for (let i = 0; i < problems.length; i++) {
+    const [problem, answer, steps] = problems[i];
+    const blockRow = Math.floor(i / columns);
+    const blockCol = i % columns;
+    const blockTop = P.contentTop + blockRow * blockH;
+    const x0 = P.marginX + blockCol * colW + innerPad;
+    const availW = colW - innerPad * 2; // mm
+    const availWpt = (availW * 72) / 25.4;
+
+    const text = answerMode ? solveProblem(problem, answer) : problem;
+
+    // 算式（第 1 行）：按实际宽度收缩字号，保证单行放下
+    let fSize = expressionFont;
+    doc.setFontSize(fSize);
+    const needed = doc.getTextWidth(text);
+    if (needed > availWpt) {
+      fSize = Math.max(8, Math.floor((availWpt / needed) * fSize * 10) / 10);
+      doc.setFontSize(fSize);
+    }
+    doc.setTextColor(0, 0, 0);
+    // 第 1 行作为算式行，基线落在该行引导线上
+    doc.text(text, x0, blockTop + cellHeight * 0.78);
+
+    // 空白引导线（模拟横线格，供书写计算步骤）
+    doc.setDrawColor(185, 185, 185);
+    doc.setLineWidth(0.35);
+    for (let s = 1; s < MULTI_STEP_BLOCK; s++) {
+      const lineY = blockTop + (s + 1) * cellHeight - cellHeight * 0.22;
+      doc.line(x0, lineY, x0 + availW, lineY);
+    }
+
+    // 答案页：在引导线上逐行填入计算步骤
+    if (answerMode && steps && steps.length > 0) {
+      doc.setFontSize(Math.max(8, fSize * 0.82));
+      doc.setTextColor(70, 70, 70);
+      steps.forEach((step, si) => {
+        const lineY = blockTop + (si + 2) * cellHeight - cellHeight * 0.22;
+        doc.text(step, x0, lineY);
+      });
+    }
+  }
 }
