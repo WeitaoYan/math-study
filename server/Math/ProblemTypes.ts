@@ -1,9 +1,7 @@
 // ProblemTypes.js
 import {
-  MaxValidator,
   NoCarryValidator,
   CarryValidator,
-  Validation,
 } from "./Validates.js";
 
 /**
@@ -80,8 +78,8 @@ export class Addition extends BaseMathProblem {
   symbol = "+";
   maxSum: number;
   minSum: number;
-  validators: Validation[];
   roundTo: number;
+  carry: boolean;
 
   /**
    * @param {number} maxSum - 最大和
@@ -95,44 +93,65 @@ export class Addition extends BaseMathProblem {
     this.maxSum = maxSum;
     this.minSum = minSum;
     this.roundTo = roundTo;
-    this.validators = [new MaxValidator(maxSum)];
-    if (carry) {
-      this.validators.push(new CarryValidator());
-    } else {
-      this.validators.push(new NoCarryValidator());
-    }
+    this.carry = carry;
   }
 
   /**
    * 生成加法题
-   * @returns {[string, number]} 公式字符串和答案
+   * 带有限重试 + 逐级回退，保证任何配置都能终止：
+   * 1. 原配置（整十来/进位）
+   * 2. 放弃整十来，保留进位
+   * 3. 保留整十来，放弃进位
+   * 4. 全部放弃
+   * @returns {[string, string]} 公式字符串和答案
    */
   generate(): [string, string] {
-    while (true) {
-      let a: number, b: number;
+    const combos: [number, boolean][] = [
+      [this.roundTo, this.carry],
+      [0, this.carry],
+      [this.roundTo, false],
+      [0, false],
+    ];
+    for (const [roundTo, carry] of combos) {
+      const pick = this.tryPick(roundTo, carry);
+      if (pick) return this.generateFormula(pick[0], pick[1], pick[2]);
+    }
+    throw new Error(
+      "配置无法生成加法题：数值范围过小或与进位/整十来约束冲突，请增大 range_max 或关闭进位",
+    );
+  }
 
-      if (this.roundTo > 0) {
-        // 整十/整百模式：在"步数空间"中生成，确保操作数都是 roundTo 的倍数
-        const maxSteps = Math.floor(this.maxSum / this.roundTo);
-        const minSteps = Math.floor(this.minSum / this.roundTo);
+  /** 在给定约束下滑动随机抽取一组满足条件的操作数，带尝试上限 */
+  private tryPick(
+    roundTo: number,
+    carry: boolean,
+  ): [number, number, number] | null {
+    const { maxSum, minSum } = this;
+    for (let i = 0; i < 5000; i++) {
+      let a: number, b: number;
+      if (roundTo > 0) {
+        const maxSteps = Math.floor(maxSum / roundTo);
+        const minSteps = Math.floor(minSum / roundTo);
         const aSteps =
           Math.floor(Math.random() * (maxSteps - minSteps + 1)) + minSteps;
-        a = aSteps * this.roundTo;
+        a = aSteps * roundTo;
         const bSteps =
           Math.floor(Math.random() * (maxSteps - aSteps + 1)) + aSteps;
-        b = bSteps * this.roundTo;
+        b = bSteps * roundTo;
       } else {
-        // 普通模式
         a =
-          Math.floor(Math.random() * (this.maxSum - this.minSum)) + this.minSum;
-        b = Math.floor(Math.random() * (this.maxSum - a)) + a;
+          Math.floor(Math.random() * (maxSum - minSum)) + minSum;
+        b = Math.floor(Math.random() * (maxSum - a)) + a;
       }
 
       const r = a + b;
-      if (this.validators.every((v) => v.isValid(a, b))) {
-        return this.generateFormula(a, b, r);
-      }
+      if (r > maxSum) continue;
+      const carryOk = carry
+        ? new CarryValidator().isValid(a, b)
+        : new NoCarryValidator().isValid(a, b);
+      if (carryOk) return [a, b, r];
     }
+    return null;
   }
 }
 
@@ -144,8 +163,8 @@ export class Subtraction extends BaseMathProblem {
   symbol = "-";
   maxSum: number;
   minSum: number;
-  validators: Validation[];
   roundTo: number;
+  borrow: boolean;
 
   /**
    * @param {number} maxSum - 最大和
@@ -159,44 +178,65 @@ export class Subtraction extends BaseMathProblem {
     this.maxSum = maxSum;
     this.minSum = minSum;
     this.roundTo = roundTo;
-    this.validators = [new MaxValidator(maxSum)];
-    if (borrow) {
-      this.validators.push(new CarryValidator());
-    } else {
-      this.validators.push(new NoCarryValidator());
-    }
+    this.borrow = borrow;
   }
 
   /**
    * 生成减法题
-   * @returns {[string, number]} 公式字符串和答案
+   * 带有限重试 + 逐级回退，保证任何配置都能终止：
+   * 1. 原配置（整十来/借位）
+   * 2. 放弃整十来，保留借位
+   * 3. 保留整十来，放弃借位
+   * 4. 全部放弃
+   * @returns {[string, string]} 公式字符串和答案
    */
   generate() {
-    while (true) {
-      let a: number, b: number;
+    const combos: [number, boolean][] = [
+      [this.roundTo, this.borrow],
+      [0, this.borrow],
+      [this.roundTo, false],
+      [0, false],
+    ];
+    for (const [roundTo, borrow] of combos) {
+      const pick = this.tryPick(roundTo, borrow);
+      if (pick) return this.generateFormula(pick[0], pick[1], pick[2]);
+    }
+    throw new Error(
+      "配置无法生成减法题：数值范围过小或与借位/整十来约束冲突，请增大 range_max 或关闭借位",
+    );
+  }
 
-      if (this.roundTo > 0) {
-        // 整十/整百模式：在"步数空间"中生成
-        const maxSteps = Math.floor(this.maxSum / this.roundTo);
-        const minSteps = Math.floor(this.minSum / this.roundTo);
+  /** 在给定约束下滑动随机抽取一组满足条件的操作数，带尝试上限 */
+  private tryPick(
+    roundTo: number,
+    borrow: boolean,
+  ): [number, number, number] | null {
+    const { maxSum, minSum } = this;
+    for (let i = 0; i < 5000; i++) {
+      let a: number, b: number;
+      if (roundTo > 0) {
+        const maxSteps = Math.floor(maxSum / roundTo);
+        const minSteps = Math.floor(minSum / roundTo);
         const aSteps =
           Math.floor(Math.random() * (maxSteps - minSteps + 1)) + minSteps;
-        a = aSteps * this.roundTo;
+        a = aSteps * roundTo;
         const bSteps =
           Math.floor(Math.random() * (maxSteps - aSteps + 1)) + aSteps;
-        b = bSteps * this.roundTo;
+        b = bSteps * roundTo;
       } else {
-        // 普通模式
         a =
-          Math.floor(Math.random() * (this.maxSum - this.minSum)) + this.minSum;
-        b = Math.floor(Math.random() * (this.maxSum - a)) + a;
+          Math.floor(Math.random() * (maxSum - minSum)) + minSum;
+        b = Math.floor(Math.random() * (maxSum - a)) + a;
       }
 
       const r = a + b;
-      if (this.validators.every((v) => v.isValid(a, b))) {
-        return this.generateFormula(r, a, b);
-      }
+      if (r > maxSum) continue;
+      const borrowOk = borrow
+        ? new CarryValidator().isValid(a, b)
+        : new NoCarryValidator().isValid(a, b);
+      if (borrowOk) return [a, b, r];
     }
+    return null;
   }
 }
 

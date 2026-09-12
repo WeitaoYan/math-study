@@ -94,6 +94,12 @@ export default defineEventHandler(async (event) => {
     return responsePDF(doc, event);
   } catch (error) {
     console.error("PDF生成错误:", error);
+    const msg = (error as Error)?.message ?? "";
+    // 配置无解（生成器已带重试上限与回退，仅极少数完全冲突的配置才走到这里）
+    if (msg.startsWith("配置无法生成")) {
+      event.node.res.statusCode = 400;
+      return { error: msg };
+    }
     event.node.res.statusCode = 500;
     return { error: "PDF生成失败" };
   }
