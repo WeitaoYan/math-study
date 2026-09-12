@@ -68,6 +68,8 @@ const requiredCharacters = [
   "学",
   "练",
   "习",
+  "脱",
+  "式",
   // 运算符号
   "+",
   "-",
@@ -146,7 +148,7 @@ async function createSubsetFont() {
     // 读取原始完整字体文件
     const originalFontPath = path.join(
       process.cwd(),
-      "scripts/Alibaba-PuHuiTi-Regular.ttf"
+      "scripts/Alibaba-PuHuiTi-Regular.ttf",
     ); // 替换为你的原始字体文件路径
     console.log("正在读取字体文件:", originalFontPath);
 
@@ -161,7 +163,7 @@ async function createSubsetFont() {
     console.log(
       "原始字体大小:",
       (originalFontBuffer.length / 1024 / 1024).toFixed(2),
-      "MB"
+      "MB",
     );
 
     // 检查 subsetFont 是否为函数
@@ -174,7 +176,7 @@ async function createSubsetFont() {
     // 创建子集字体
     const subsetBuffer = await subsetFont(
       originalFontBuffer,
-      requiredCharacters
+      requiredCharacters,
     );
 
     console.log("子集字体大小:", (subsetBuffer.length / 1024).toFixed(2), "KB");
@@ -182,7 +184,7 @@ async function createSubsetFont() {
     // 保存子集字体文件
     const outputPath = path.join(
       process.cwd(),
-      "app/assets/fonts/chinese-subset.ttf"
+      "app/assets/fonts/chinese-subset.ttf",
     );
     fs.writeFileSync(outputPath, subsetBuffer);
 
@@ -195,7 +197,7 @@ export const CHINESE_FONT_NAME = "ChineseSubset";`;
 
     const configPath = path.join(
       process.cwd(),
-      "app/assets/fonts/chinese-font.js"
+      "app/assets/fonts/chinese-font.js",
     );
     fs.writeFileSync(configPath, configContent);
 
@@ -205,7 +207,7 @@ export const CHINESE_FONT_NAME = "ChineseSubset";`;
     console.log(
       "📈 字体压缩比:",
       ((1 - subsetBuffer.length / originalFontBuffer.length) * 100).toFixed(2),
-      "%"
+      "%",
     );
   } catch (error) {
     console.error("❌ 字体子集生成失败:", error);

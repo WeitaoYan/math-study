@@ -3,13 +3,13 @@
     <div class="header-section">
       <h1 class="main-title">脱式计算</h1>
       <p class="subtitle">
-        生成多步混合运算题，每道题下方留 5 行空位书写计算过程（答案页展示逐步计算步骤）
+        生成多步混合运算题，每道题下方留空位书写计算过程（答案页展示逐步计算步骤）
       </p>
       <div class="links-box">
-        <NuxtLink to="/mentalArithmetic" class="link">→ 自定义口算生成</NuxtLink>
-        <NuxtLink to="/quickArithmetic" class="link"
-          >→ 快速口算生成</NuxtLink
+        <NuxtLink to="/mentalArithmetic" class="link"
+          >→ 自定义口算生成</NuxtLink
         >
+        <NuxtLink to="/quickArithmetic" class="link">→ 快速口算生成</NuxtLink>
       </div>
     </div>
 
@@ -124,7 +124,9 @@
             <span class="help-text">所有数及每步计算结果都保持在该范围内</span>
 
             <div class="form-group">
-              <label for="multi_step_terms" class="form-label">参与数字个数</label>
+              <label for="multi_step_terms" class="form-label"
+                >参与数字个数</label
+              >
               <select
                 id="multi_step_terms"
                 v-model.number="form.multi_step_terms"
