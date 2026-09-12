@@ -160,6 +160,12 @@ function renderMultiStepPage(
 ) {
   const P = MULTI_STEP_PAGE;
 
+  // 页眉：网站链接（与口算页同一套位置/字号）
+  doc.setFont(S.font.name, S.font.style);
+  doc.setFontSize(S.header.urlFontSize);
+  doc.setTextColor(0, 0, 0);
+  doc.text(S.header.url, S.header.urlX, S.header.urlY);
+
   // 标题
   doc.setFont(S.font.name, S.font.style);
   doc.setFontSize(S.title.fontSize);
