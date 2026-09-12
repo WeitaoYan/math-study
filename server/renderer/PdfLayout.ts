@@ -15,6 +15,9 @@ export const PAGE = {
   tableBottom: 254,
 };
 
+/** autoTable 实际最小行高(mm) */
+export const MIN_ROW = 5;
+
 /**
  * 根据「每页题数 + 列数」反推排版参数，保证单页不溢出。
  *
@@ -35,9 +38,12 @@ export function computeLayout(
   const totalRows = rows + 2; // + 表头 + 表尾
 
   const availH = PAGE.tableBottom - PAGE.tableTop;
-  // 单格高度由可用高度严格均分；上限 36mm 避免少题时单元格被拉得过大。
-  // 这样 totalRows * cellHeight 永远 ≤ availH，单页物理上不可能纵向溢出。
-  const cellHeight = Math.min(36, Math.floor(availH / totalRows));
+  // 行高用满全部可用高度（保留 1.5mm 浮点余量，避免累积误差越过 tableBottom 触发分页）。
+  // 不做整毫米取整，避免丢弃余量造成页底大片空白；也不设高度上限，题少时行自然变高填满整页。
+  const cellHeight = Math.max(
+    MIN_ROW,
+    Math.floor(((availH - 1.5) / totalRows) * 100) / 100,
+  );
 
   const colW = (PAGE.width - PAGE.marginX * 2) / safeColumns;
   // 字号由“行高预算”反推：autoTable 实际行高 ≈ fontSize*0.95(mm)，
@@ -66,7 +72,6 @@ export function resolveLayout(
   columns: number,
 ): { columns: number; rows: number; cellHeight: number; fontSize: number } {
   const availH = PAGE.tableBottom - PAGE.tableTop;
-  const MIN_ROW = 5; // autoTable 实际最小行高(mm)
   const maxRows = Math.floor(availH / MIN_ROW) - 2; // 预留表头 + 表尾 2 行
   const minCols = Math.max(3, Math.ceil(perPage / maxRows));
   const effCols = Math.max(1, Math.max(columns, minCols));
