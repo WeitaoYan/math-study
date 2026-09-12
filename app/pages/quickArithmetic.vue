@@ -617,6 +617,7 @@ const generateMathProblems = async () => {
   .level-category {
     margin-bottom: 20px;
   }
+}
 
 .config-card {
   background: white;
@@ -818,7 +819,8 @@ const generateMathProblems = async () => {
   margin: 20px 0;
 }
 
-.form-actions {
+@media (max-width: 768px) {
+  .form-actions {
     position: fixed;
     bottom: 20px;
     left: 50%;
