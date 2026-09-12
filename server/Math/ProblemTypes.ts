@@ -300,11 +300,23 @@ export class MultiStep extends BaseMathProblem {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  /** 求 v 在 [lo, hi] 内的所有约数 */
-  private divisorsInRange(v: number, lo: number, hi: number): number[] {
+  /** 在因子范围内随机抽取一个小因子 */
+  private randFactor(): number {
+    return this.rand(this.factorMin, this.factorMax);
+  }
+
+  /** 随机抽取一个表内积：两个因子都在表内 */
+  private randTableProduct(): number {
+    return this.randFactor() * this.randFactor();
+  }
+
+  /** 求 v 的所有「表内除」除数：d 在因子范围内，且商 v/d 也在因子范围内 */
+  private tableDivisors(v: number): number[] {
     const out: number[] = [];
-    for (let d = lo; d <= hi; d++) {
-      if (v % d === 0) out.push(d);
+    for (let d = this.factorMin; d <= this.factorMax; d++) {
+      if (v % d === 0 && v / d >= this.factorMin && v / d <= this.factorMax) {
+        out.push(d);
+      }
     }
     return out;
   }
@@ -327,22 +339,39 @@ export class MultiStep extends BaseMathProblem {
       ops[this.rand(0, n - 2)] = Math.random() < 0.5 ? "×" : "÷";
     }
 
-    // 2. 再生成操作数：乘除的相邻数用 2..9 的小因子，加减用全区间
-    nums.push(this.rand(this.min, this.max));
+    // 2. 再生成操作数：乘除运算的每一步都必须是表内乘除法，
+    //    因此凡参与 ×/÷ 的操作数都按因子范围取值，避免出现「64 × 2」「100 ÷ 5」、
+    //    「92 ÷ 2」这类越出乘法口诀表的中间运算；加减号操作数用全区间。
+    const isMul = (o: string) => o === "×";
+    const isDiv = (o: string) => o === "÷";
+
+    // 首位：若从乘/除开始，直接落在表内
+    if (isMul(ops[0]!)) {
+      nums.push(this.randFactor());
+    } else if (isDiv(ops[0]!)) {
+      nums.push(this.randTableProduct());
+    } else {
+      nums.push(this.rand(this.min, this.max));
+    }
+
     for (let i = 1; i < n; i++) {
       const op = ops[i - 1]!;
+      const next = i < n - 1 ? ops[i] : undefined;
       if (op === "×") {
-        nums.push(this.rand(this.factorMin, this.factorMax));
+        nums.push(this.randFactor());
       } else if (op === "÷") {
-        const divisors = this.divisorsInRange(
-          nums[i - 1]!,
-          this.factorMin,
-          this.factorMax,
-        );
+        const divisors = this.tableDivisors(nums[i - 1]!);
         if (divisors.length === 0) return null;
         nums.push(divisors[this.rand(0, divisors.length - 1)]!);
       } else {
-        nums.push(this.rand(this.min, this.max));
+        // 加减号操作数：若它同时是右侧 ×/÷ 的左操作数，按表内规则取值
+        if (next === "×") {
+          nums.push(this.randFactor());
+        } else if (next === "÷") {
+          nums.push(this.randTableProduct());
+        } else {
+          nums.push(this.rand(this.min, this.max));
+        }
       }
     }
 
@@ -358,6 +387,30 @@ export class MultiStep extends BaseMathProblem {
       const b = nArr[idx + 1]!;
       const op = oArr[idx]!;
       const r = this.applyOp(a, op, b);
+
+      // 表内校验：凡是 ×/÷ 的中间步骤，操作数必须全部落在因子范围内。
+      // 优先采用「先乘除」保守校验——即乘法因子与除法除数、商都须是表内数，
+      // 保证脱式计算过程中每一步乘除法都是九九乘法表以内的运算。
+      if (op === "×") {
+        if (
+          a < this.factorMin ||
+          a > this.factorMax ||
+          b < this.factorMin ||
+          b > this.factorMax
+        ) {
+          return null;
+        }
+      } else if (op === "÷") {
+        if (
+          b < this.factorMin ||
+          b > this.factorMax ||
+          r < this.factorMin ||
+          r > this.factorMax
+        ) {
+          return null;
+        }
+      }
+
       if (!Number.isInteger(r) || r < 1 || r > finalCap) return null;
       nArr[idx] = r;
       nArr.splice(idx + 1, 1);
