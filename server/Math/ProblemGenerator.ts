@@ -84,9 +84,23 @@ function buildFactories(config: Config): ProblemFactory[] {
   // 脱式计算
   const msCount = Math.floor(totalCount * config.multi_step.ratio);
   if (msCount > 0) {
-    const { range_min: min, range_max: max, terms, use_mul_div } =
-      config.multi_step;
-    const inst = new MultiStep(terms, min, max, use_mul_div, compact);
+    const {
+      range_min: min,
+      range_max: max,
+      terms,
+      use_mul_div,
+      factor_min,
+      factor_max,
+    } = config.multi_step;
+    const inst = new MultiStep(
+      terms,
+      min,
+      max,
+      use_mul_div,
+      compact,
+      factor_min,
+      factor_max,
+    );
     factories.push({ count: msCount, generate: () => inst.generate() });
   }
 

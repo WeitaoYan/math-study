@@ -91,6 +91,8 @@ export function parseCustomConfig(body: RequestBody): Config {
         body.multi_step_use_mul_div === undefined
           ? true
           : parseBoolean(body.multi_step_use_mul_div),
+      factor_min: parseInt(body.multi_step_factor_min ?? "2", 10),
+      factor_max: parseInt(body.multi_step_factor_max ?? "9", 10),
     },
   };
 }

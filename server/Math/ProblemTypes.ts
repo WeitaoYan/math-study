@@ -253,20 +253,35 @@ export class MultiStep extends BaseMathProblem {
   min: number;
   max: number;
   useMulDiv: boolean;
+  factorMin: number;
+  factorMax: number;
 
   /**
    * @param {number} terms - 参与运算的数字个数（3 = 两步，4 = 三步）
    * @param {number} min - 加减操作数与最终结果的最小值
    * @param {number} max - 加减操作数与最终结果的最大值
    * @param {boolean} useMulDiv - 是否混入乘除运算
+   * @param {boolean} compact - 紧凑模式（关闭符号空格）
+   * @param {number} factorMin - 乘除因数最小值（默认 2）
+   * @param {number} factorMax - 乘除因数最大值（默认 9，表内范围）
    */
-  constructor(terms = 3, min = 10, max = 100, useMulDiv = false, compact = false) {
+  constructor(
+    terms = 3,
+    min = 10,
+    max = 100,
+    useMulDiv = false,
+    compact = false,
+    factorMin = 2,
+    factorMax = 9,
+  ) {
     super();
     this.terms = Math.max(2, Math.min(4, Math.round(terms)));
     this.spacing = !compact;
     this.min = min;
     this.max = max;
     this.useMulDiv = useMulDiv;
+    this.factorMin = Math.max(2, factorMin);
+    this.factorMax = Math.max(this.factorMin, factorMax);
   }
 
   /** 生成一道脱式计算题 */
@@ -317,9 +332,13 @@ export class MultiStep extends BaseMathProblem {
     for (let i = 1; i < n; i++) {
       const op = ops[i - 1]!;
       if (op === "×") {
-        nums.push(this.rand(2, 9));
+        nums.push(this.rand(this.factorMin, this.factorMax));
       } else if (op === "÷") {
-        const divisors = this.divisorsInRange(nums[i - 1]!, 2, 9);
+        const divisors = this.divisorsInRange(
+          nums[i - 1]!,
+          this.factorMin,
+          this.factorMax,
+        );
         if (divisors.length === 0) return null;
         nums.push(divisors[this.rand(0, divisors.length - 1)]!);
       } else {

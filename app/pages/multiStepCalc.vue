@@ -1,7 +1,7 @@
 <template>
   <div class="math-generator-container">
     <div class="header-section">
-      <h1 class="main-title">脱式计算题生成器</h1>
+      <h1 class="main-title">脱式计算</h1>
       <p class="subtitle">
         生成多步混合运算题，每道题下方留 5 行空位书写计算过程（答案页展示逐步计算步骤）
       </p>
@@ -147,6 +147,35 @@
                 允许乘除运算（勾选后题目会混入 ×、÷；不勾选则仅加减混合）
               </label>
             </div>
+
+            <div v-if="form.multi_step_use_mul_div" class="form-row">
+              <div class="form-group half-width">
+                <label for="multi_step_factor_min" class="form-label"
+                  >乘除因数最小值</label
+                >
+                <input
+                  type="number"
+                  class="form-input"
+                  id="multi_step_factor_min"
+                  v-model.number="form.multi_step_factor_min"
+                  min="2"
+                />
+              </div>
+
+              <div class="form-group half-width">
+                <label for="multi_step_factor_max" class="form-label"
+                  >乘除因数最大值</label
+                >
+                <input
+                  type="number"
+                  class="form-input"
+                  id="multi_step_factor_max"
+                  v-model.number="form.multi_step_factor_max"
+                  min="2"
+                />
+              </div>
+            </div>
+            <span class="help-text">×、÷ 使用的因数范围，默认表内 2~9</span>
           </div>
         </div>
       </div>
@@ -176,7 +205,7 @@
 
 <script setup lang="ts">
 useHead({
-  title: "脱式计算题生成器",
+  title: "脱式计算",
   meta: [
     {
       name: "description",
@@ -188,7 +217,7 @@ useHead({
 const form = reactive({
   count: 2,
   start: 1,
-  per_page_count: 6,
+  per_page_count: 12,
   columns: "3",
   include_answers: false,
   multi_step_ratio: 100,
@@ -196,6 +225,8 @@ const form = reactive({
   multi_step_range_max: 100,
   multi_step_terms: 3,
   multi_step_use_mul_div: true,
+  multi_step_factor_min: 2,
+  multi_step_factor_max: 9,
 });
 
 const loading = ref(false);

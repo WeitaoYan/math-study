@@ -165,8 +165,8 @@ function renderMultiStepPage(
   doc.setFontSize(S.title.fontSize);
   const base = "脱式计算";
   const label = answerMode
-    ? `${base}答案(第${pageIndex + config.start}组)`
-    : `${base}(第${pageIndex + config.start}组)`;
+    ? `${base}答案第${pageIndex + config.start}组`
+    : `${base}第${pageIndex + config.start}组`;
   doc.setTextColor(0, 0, 0);
   doc.text(label, P.width / 2, P.headerTitleY, { align: "center" });
 
@@ -189,15 +189,6 @@ function renderMultiStepPage(
   const colW = (P.width - P.marginX * 2) / columns;
   const blockH = MULTI_STEP_BLOCK * cellHeight;
   const innerPad = 2.5; // 块内左右留白(mm)
-  const contentH = rows * blockH;
-
-  // 列分隔线（浅灰）
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  for (let c = 1; c < columns; c++) {
-    const x = P.marginX + c * colW;
-    doc.line(x, P.contentTop, x, P.contentTop + contentH);
-  }
 
   for (let i = 0; i < problems.length; i++) {
     const [problem, answer, steps] = problems[i];
@@ -219,18 +210,10 @@ function renderMultiStepPage(
       doc.setFontSize(fSize);
     }
     doc.setTextColor(0, 0, 0);
-    // 第 1 行作为算式行，基线落在该行引导线上
+    // 算式落在该块的第一行位置（无网格线，仅通过留白划分书写区）
     doc.text(text, x0, blockTop + cellHeight * 0.78);
 
-    // 空白引导线（模拟横线格，供书写计算步骤）
-    doc.setDrawColor(185, 185, 185);
-    doc.setLineWidth(0.35);
-    for (let s = 1; s < MULTI_STEP_BLOCK; s++) {
-      const lineY = blockTop + (s + 1) * cellHeight - cellHeight * 0.22;
-      doc.line(x0, lineY, x0 + availW, lineY);
-    }
-
-    // 答案页：在引导线上逐行填入计算步骤
+    // 答案页：在算式下方逐行填入计算步骤（整齐对齐书写区）
     if (answerMode && steps && steps.length > 0) {
       doc.setFontSize(Math.max(8, fSize * 0.82));
       doc.setTextColor(70, 70, 70);
