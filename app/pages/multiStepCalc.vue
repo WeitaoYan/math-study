@@ -150,6 +150,19 @@
               </label>
             </div>
 
+            <div v-if="form.multi_step_use_mul_div" class="form-group checkbox-group">
+              <label class="checkbox-container">
+                <input
+                  type="checkbox"
+                  class="form-checkbox"
+                  id="multi_step_use_parentheses"
+                  v-model="form.multi_step_use_parentheses"
+                />
+                <span class="checkmark"></span>
+                使用括号（如 (a+b)×c、a×(b+c)+d，需开启乘除运算）
+              </label>
+            </div>
+
             <div v-if="form.multi_step_use_mul_div" class="form-row">
               <div class="form-group half-width">
                 <label for="multi_step_factor_min" class="form-label"
@@ -227,6 +240,7 @@ const form = reactive({
   multi_step_range_max: 100,
   multi_step_terms: 3,
   multi_step_use_mul_div: true,
+  multi_step_use_parentheses: false,
   multi_step_factor_min: 2,
   multi_step_factor_max: 9,
 });

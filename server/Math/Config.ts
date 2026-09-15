@@ -76,6 +76,8 @@ export interface MultiStepConfig {
   terms: number;
   /** 是否允许乘除运算（false 时仅加减混合） */
   use_mul_div: boolean;
+  /** 是否允许括号（需要同时开启乘除运算） */
+  use_parentheses: boolean;
   /** 乘除运算的因数范围（默认表内 2..9） */
   factor_min: number;
   factor_max: number;
@@ -87,6 +89,7 @@ export const empty_multi_step_config: MultiStepConfig = {
   range_max: 0,
   terms: 3,
   use_mul_div: true,
+  use_parentheses: false,
   factor_min: 2,
   factor_max: 9,
 };

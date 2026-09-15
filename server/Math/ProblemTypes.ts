@@ -253,6 +253,7 @@ export class MultiStep extends BaseMathProblem {
   min: number;
   max: number;
   useMulDiv: boolean;
+  useParentheses: boolean;
   factorMin: number;
   factorMax: number;
 
@@ -264,6 +265,7 @@ export class MultiStep extends BaseMathProblem {
    * @param {boolean} compact - 紧凑模式（关闭符号空格）
    * @param {number} factorMin - 乘除因数最小值（默认 2）
    * @param {number} factorMax - 乘除因数最大值（默认 9，表内范围）
+   * @param {boolean} useParentheses - 是否使用括号（需要同时开启乘除）
    */
   constructor(
     terms = 3,
@@ -273,6 +275,7 @@ export class MultiStep extends BaseMathProblem {
     compact = false,
     factorMin = 2,
     factorMax = 9,
+    useParentheses = false,
   ) {
     super();
     this.terms = Math.max(2, Math.min(4, Math.round(terms)));
@@ -280,6 +283,7 @@ export class MultiStep extends BaseMathProblem {
     this.min = min;
     this.max = max;
     this.useMulDiv = useMulDiv;
+    this.useParentheses = useParentheses && useMulDiv;
     this.factorMin = Math.max(2, factorMin);
     this.factorMax = Math.max(this.factorMin, factorMax);
   }
@@ -287,7 +291,9 @@ export class MultiStep extends BaseMathProblem {
   /** 生成一道脱式计算题 */
   generate(): [string, string, string[]] {
     for (let attempt = 0; attempt < 10000; attempt++) {
-      const built = this.tryBuild();
+      const built = this.useParentheses
+        ? this.tryBuildWithParentheses()
+        : this.tryBuild();
       if (built) return built;
     }
     throw new Error(
@@ -321,7 +327,16 @@ export class MultiStep extends BaseMathProblem {
     return out;
   }
 
-  /** 尝试构造一道题，任何一步不满足约束则返回 null */
+  /** 检查值是否在 [min, max] 范围内 */
+  private inRange(v: number): boolean {
+    return v >= this.min && v <= this.max;
+  }
+
+  // ================================================================
+  //  不带括号的表达式生成
+  // ================================================================
+
+  /** 尝试构造一道不带括号的题，任何一步不满足约束则返回 null */
   private tryBuild(): [string, string, string[]] | null {
     const n = this.terms;
     const nums: number[] = [];
@@ -432,6 +447,186 @@ export class MultiStep extends BaseMathProblem {
       if (i < ops.length) parts.push(ops[i]!);
     }
     return [`${parts.join(" ")} = ___`, `${final}`, steps];
+  }
+
+  // ================================================================
+  //  带括号的表达式生成
+  // ================================================================
+
+  /**
+   * 带括号表达式的模板
+   * - kinds[i] 决定第 i 个操作数的取值来源：
+   *   'factor' => [factorMin, factorMax]（乘除因子，与普通乘除题一致）
+   *   'range'  => [min, max]（加减操作数）
+   * - build(nums) 返回 { expr, steps } 或 null（数值不满足约束时）
+   */
+  private parenTemplates: {
+    kinds: ("factor" | "range")[];
+    build: (nums: number[]) => { expr: string; steps: string[] } | null;
+  }[] = [
+    // ============ 3 个数 ============
+    // (a + b) × c
+    { kinds: ["range", "range", "factor"], build: (n) => {
+      const inner = n[0]! + n[1]!;
+      if (!this.inRange(inner)) return null;
+      const result = inner * n[2]!;
+      if (!this.inRange(result)) return null;
+      return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]}`, steps: [`${inner} × ${n[2]}`, `${result}`] };
+    }},
+    // (a - b) × c
+    { kinds: ["range", "range", "factor"], build: (n) => {
+      const inner = n[0]! - n[1]!;
+      if (inner < 1 || !this.inRange(inner)) return null;
+      const result = inner * n[2]!;
+      if (!this.inRange(result)) return null;
+      return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]}`, steps: [`${inner} × ${n[2]}`, `${result}`] };
+    }},
+    // a × (b + c)
+    { kinds: ["factor", "range", "range"], build: (n) => {
+      const inner = n[1]! + n[2]!;
+      if (!this.inRange(inner)) return null;
+      const result = n[0]! * inner;
+      if (!this.inRange(result)) return null;
+      return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} )`, steps: [`${n[0]} × ${inner}`, `${result}`] };
+    }},
+    // a × (b - c)
+    { kinds: ["factor", "range", "range"], build: (n) => {
+      const inner = n[1]! - n[2]!;
+      if (inner < 1 || !this.inRange(inner)) return null;
+      const result = n[0]! * inner;
+      if (!this.inRange(result)) return null;
+      return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} )`, steps: [`${n[0]} × ${inner}`, `${result}`] };
+    }},
+    // (a + b) ÷ c
+    { kinds: ["range", "range", "factor"], build: (n) => {
+      const inner = n[0]! + n[1]!;
+      if (!this.inRange(inner)) return null;
+      if (inner % n[2]! !== 0) return null;
+      const result = inner / n[2]!;
+      if (!this.inRange(result)) return null;
+      return { expr: `( ${n[0]} + ${n[1]} ) ÷ ${n[2]}`, steps: [`${inner} ÷ ${n[2]}`, `${result}`] };
+    }},
+    // (a - b) ÷ c
+    { kinds: ["range", "range", "factor"], build: (n) => {
+      const inner = n[0]! - n[1]!;
+      if (inner < 1 || !this.inRange(inner)) return null;
+      if (inner % n[2]! !== 0) return null;
+      const result = inner / n[2]!;
+      if (!this.inRange(result)) return null;
+      return { expr: `( ${n[0]} - ${n[1]} ) ÷ ${n[2]}`, steps: [`${inner} ÷ ${n[2]}`, `${result}`] };
+    }},
+    // ============ 4 个数 ============
+    // a × (b + c) + d
+    { kinds: ["factor", "range", "range", "range"], build: (n) => {
+      const inner = n[1]! + n[2]!;
+      if (!this.inRange(inner)) return null;
+      const mid = n[0]! * inner;
+      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      const result = mid + n[3]!;
+      if (!this.inRange(result)) return null;
+      return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} ) + ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} + ${n[3]}`, `${result}`] };
+    }},
+    // a × (b + c) - d
+    { kinds: ["factor", "range", "range", "range"], build: (n) => {
+      const inner = n[1]! + n[2]!;
+      if (!this.inRange(inner)) return null;
+      const mid = n[0]! * inner;
+      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      const result = mid - n[3]!;
+      if (result < 1 || !this.inRange(result)) return null;
+      return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} ) - ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} - ${n[3]}`, `${result}`] };
+    }},
+    // a × (b - c) + d
+    { kinds: ["factor", "range", "range", "range"], build: (n) => {
+      const inner = n[1]! - n[2]!;
+      if (inner < 1 || !this.inRange(inner)) return null;
+      const mid = n[0]! * inner;
+      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      const result = mid + n[3]!;
+      if (!this.inRange(result)) return null;
+      return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} ) + ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} + ${n[3]}`, `${result}`] };
+    }},
+    // a × (b - c) - d
+    { kinds: ["factor", "range", "range", "range"], build: (n) => {
+      const inner = n[1]! - n[2]!;
+      if (inner < 1 || !this.inRange(inner)) return null;
+      const mid = n[0]! * inner;
+      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      const result = mid - n[3]!;
+      if (result < 1 || !this.inRange(result)) return null;
+      return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} ) - ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} - ${n[3]}`, `${result}`] };
+    }},
+    // (a + b) × c + d
+    { kinds: ["range", "range", "factor", "range"], build: (n) => {
+      const inner = n[0]! + n[1]!;
+      if (!this.inRange(inner)) return null;
+      const mid = inner * n[2]!;
+      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      const result = mid + n[3]!;
+      if (!this.inRange(result)) return null;
+      return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]} + ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} + ${n[3]}`, `${result}`] };
+    }},
+    // (a + b) × c - d
+    { kinds: ["range", "range", "factor", "range"], build: (n) => {
+      const inner = n[0]! + n[1]!;
+      if (!this.inRange(inner)) return null;
+      const mid = inner * n[2]!;
+      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      const result = mid - n[3]!;
+      if (result < 1 || !this.inRange(result)) return null;
+      return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]} - ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} - ${n[3]}`, `${result}`] };
+    }},
+    // (a - b) × c + d
+    { kinds: ["range", "range", "factor", "range"], build: (n) => {
+      const inner = n[0]! - n[1]!;
+      if (inner < 1 || !this.inRange(inner)) return null;
+      const mid = inner * n[2]!;
+      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      const result = mid + n[3]!;
+      if (!this.inRange(result)) return null;
+      return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]} + ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} + ${n[3]}`, `${result}`] };
+    }},
+    // (a - b) × c - d
+    { kinds: ["range", "range", "factor", "range"], build: (n) => {
+      const inner = n[0]! - n[1]!;
+      if (inner < 1 || !this.inRange(inner)) return null;
+      const mid = inner * n[2]!;
+      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      const result = mid - n[3]!;
+      if (result < 1 || !this.inRange(result)) return null;
+      return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]} - ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} - ${n[3]}`, `${result}`] };
+    }},
+  ];
+
+  /** 尝试构造一道带括号的题 */
+  private tryBuildWithParentheses(): [string, string, string[]] | null {
+    // 依据个数过滤可用模板，并随机打乱
+    const templates = this.parenTemplates.filter(
+      (t) => t.kinds.length === this.terms,
+    );
+    const shuffled = [...templates].sort(() => Math.random() - 0.5);
+    const nums: number[] = [];
+    let result: { expr: string; steps: string[] } | null = null;
+
+    for (const tpl of shuffled) {
+      for (let attempt = 0; attempt < 200; attempt++) {
+        nums.length = 0;
+        for (const kind of tpl.kinds) {
+          nums.push(
+            kind === "factor"
+              ? this.randFactor()
+              : this.rand(this.min, this.max),
+          );
+        }
+        result = tpl.build(nums);
+        if (result) break;
+      }
+      if (result) break;
+    }
+
+    if (!result) return null;
+    const final = result.steps[result.steps.length - 1]!;
+    return [`${result.expr} = ___`, `${final}`, result.steps];
   }
 
   /** 计算单步结果 */

@@ -46,6 +46,7 @@ export interface RequestBody {
   multi_step_range_max?: string;
   multi_step_terms?: string;
   multi_step_use_mul_div?: string;
+  multi_step_use_parentheses?: string;
   multi_step_factor_min?: string;
   multi_step_factor_max?: string;
 }

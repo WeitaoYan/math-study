@@ -89,6 +89,7 @@ function buildFactories(config: Config): ProblemFactory[] {
       range_max: max,
       terms,
       use_mul_div,
+      use_parentheses,
       factor_min,
       factor_max,
     } = config.multi_step;
@@ -100,6 +101,7 @@ function buildFactories(config: Config): ProblemFactory[] {
       compact,
       factor_min,
       factor_max,
+      use_parentheses,
     );
     factories.push({ count: msCount, generate: () => inst.generate() });
   }
