@@ -33,15 +33,16 @@ function checkDivSteps(steps: string[]) {
 
 describe("MultiStep 带括号生成", () => {
   it("3 个数带括号", () => {
+    // 括号题不受数值范围约束：答案仅要求为正数（× 结果 ≤ 81，÷ 商 ≤ 9）
     const ms = new MultiStep(3, 10, 100, true, false, 2, 9, true);
-    for (let i = 0; i < 500; i++) {
+    let divCount = 0;
+    for (let i = 0; i < 800; i++) {
       const [q, ans, steps] = ms.generate();
       expect(q).toContain("(");
       expect(q).toContain(")");
-      // 答案应在范围内
       const a = parseInt(ans, 10);
-      expect(a).toBeGreaterThanOrEqual(10);
-      expect(a).toBeLessThanOrEqual(100);
+      expect(a).toBeGreaterThanOrEqual(1);
+      expect(a).toBeLessThanOrEqual(81);
       // 步骤最后一步 == 答案
       expect(parseInt(steps[steps.length - 1]!, 10)).toBe(a);
       // 步骤行数：括号表达式先是括号内计算，再乘除，共 2 行（中间式 + 答案）
@@ -51,19 +52,28 @@ describe("MultiStep 带括号生成", () => {
         expect(v).toBeGreaterThanOrEqual(2);
         expect(v).toBeLessThanOrEqual(9);
       }
+      if (q.includes("÷")) {
+        divCount++;
+        // 商（即答案）须为表内数
+        expect(a).toBeGreaterThanOrEqual(2);
+        expect(a).toBeLessThanOrEqual(9);
+      }
       checkDivSteps(steps);
     }
+    // 不受范围限制后，除法括号应能正常出现
+    expect(divCount).toBeGreaterThan(0);
   });
 
   it("4 个数带括号", () => {
+    // mid ≤ 81，尾部数 ≤ 81，答案 ∈ [1, 162]
     const ms = new MultiStep(4, 10, 100, true, false, 2, 9, true);
     for (let i = 0; i < 500; i++) {
       const [q, ans, steps] = ms.generate();
       expect(q).toContain("(");
       expect(q).toContain(")");
       const a = parseInt(ans, 10);
-      expect(a).toBeGreaterThanOrEqual(10);
-      expect(a).toBeLessThanOrEqual(100);
+      expect(a).toBeGreaterThanOrEqual(1);
+      expect(a).toBeLessThanOrEqual(162);
       expect(parseInt(steps[steps.length - 1]!, 10)).toBe(a);
       expect(steps.length).toBe(3);
       // 括号外为 × 时，括号内计算结果须为表内数（因数范围 2~9）
@@ -76,6 +86,7 @@ describe("MultiStep 带括号生成", () => {
   });
 
   it("不带括号模式仍然正常", () => {
+    // 普通模式仍受数值范围约束
     const ms = new MultiStep(4, 10, 100, true, false, 2, 9, false);
     for (let i = 0; i < 500; i++) {
       const [q, ans, steps] = ms.generate();
@@ -97,21 +108,7 @@ describe("MultiStep 带括号生成", () => {
     }
   });
 
-  it("默认范围下不出现超表内除法", () => {
-    // min=10 时表内商（≤9）不可能落在数值范围内，除法括号模板应自动无解
-    const ms = new MultiStep(3, 10, 100, true, false, 2, 9, true);
-    for (let i = 0; i < 200; i++) {
-      const [q, ans, steps] = ms.generate();
-      if (q.includes("÷")) {
-        const a = parseInt(ans, 10);
-        expect(a).toBeGreaterThanOrEqual(2);
-        expect(a).toBeLessThanOrEqual(9);
-        checkDivSteps(steps);
-      }
-    }
-  });
-
-  it("小范围下除法括号为口诀表内除法", () => {
+  it("小范围配置下括号题同样正常", () => {
     const ms = new MultiStep(3, 1, 30, true, false, 2, 9, true);
     let divCount = 0;
     for (let i = 0; i < 500; i++) {
@@ -119,7 +116,6 @@ describe("MultiStep 带括号生成", () => {
       expect(q).toContain("(");
       const a = parseInt(ans, 10);
       expect(a).toBeGreaterThanOrEqual(1);
-      expect(a).toBeLessThanOrEqual(30);
       expect(parseInt(steps[steps.length - 1]!, 10)).toBe(a);
       for (const v of parenValuesForMul(q)) {
         expect(v).toBeGreaterThanOrEqual(2);
@@ -127,13 +123,11 @@ describe("MultiStep 带括号生成", () => {
       }
       if (q.includes("÷")) {
         divCount++;
-        // 商（即答案）须为表内数
         expect(a).toBeGreaterThanOrEqual(2);
         expect(a).toBeLessThanOrEqual(9);
         checkDivSteps(steps);
       }
     }
-    // 小范围下除法括号应能生成出来
     expect(divCount).toBeGreaterThan(0);
   });
 });

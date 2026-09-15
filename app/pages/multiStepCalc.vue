@@ -121,7 +121,7 @@
                 />
               </div>
             </div>
-            <span class="help-text">所有数及每步计算结果都保持在该范围内</span>
+            <span class="help-text">普通脱式题的数值范围（勾选括号后，括号题不受此限制，仅按因数范围出题）</span>
 
             <div class="form-group">
               <label for="multi_step_terms" class="form-label"
@@ -161,7 +161,7 @@
                 <span class="checkmark"></span>
                 使用括号（如 (a+b)×c，括号内外乘除均在口诀表内，需开启乘除运算）
               </label>
-              <span class="help-text">除法括号题的商为表内数；数值最小值大于因数最大值时，仅生成乘法括号题</span>
+              <span class="help-text">括号题仅按因数范围出题，不受数值范围限制</span>
             </div>
 
             <div v-if="form.multi_step_use_mul_div" class="form-row">

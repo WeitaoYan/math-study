@@ -327,11 +327,6 @@ export class MultiStep extends BaseMathProblem {
     return out;
   }
 
-  /** 检查值是否在 [min, max] 范围内 */
-  private inRange(v: number): boolean {
-    return v >= this.min && v <= this.max;
-  }
-
   /** 检查值是否落在乘除因子范围内（表内数） */
   private inFactorRange(v: number): boolean {
     return v >= this.factorMin && v <= this.factorMax;
@@ -459,18 +454,18 @@ export class MultiStep extends BaseMathProblem {
   // ================================================================
 
   /**
-   * 带括号表达式的模板
+   * 带括号表达式的模板（不受数值范围约束，所有取值由因数范围派生）
    * - kinds[i] 决定第 i 个操作数的取值来源：
-   *   'factor' => [factorMin, factorMax]（乘除因子，与普通乘除题一致）
-   *   'range'  => [min, max]（加减操作数）
+   *   'factor' => [factorMin, factorMax]（乘除因子）
    *   'small'  => [1, factorMax]（括号内加法的小加数，保证和落在表内）
+   *   'wide'   => [1, factorMax²]（表内积量级的大数，用于减法被减数/减数、除法和差、尾部加减数）
    * - build(nums) 返回 { expr, steps } 或 null（数值不满足约束时）
-   * - 约束：括号外为 × 时，括号内计算结果须为表内数（因数范围），
-   *   括号外为 ÷ 时，除数与商须为表内数；
+   * - 约束：括号外为 × 时，括号内计算结果须为表内数；
+   *   括号外为 ÷ 时，除数与商须为表内数；其余结果仅要求为正数；
    *   保证每一步乘除都是九九乘法表以内的运算
    */
   private parenTemplates: {
-    kinds: ("factor" | "range" | "small")[];
+    kinds: ("factor" | "wide" | "small")[];
     build: (nums: number[]) => { expr: string; steps: string[] } | null;
   }[] = [
     // ============ 3 个数 ============
@@ -479,15 +474,13 @@ export class MultiStep extends BaseMathProblem {
       const inner = n[0]! + n[1]!;
       if (!this.inFactorRange(inner)) return null;
       const result = inner * n[2]!;
-      if (!this.inRange(result)) return null;
       return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]}`, steps: [`${inner} × ${n[2]}`, `${result}`] };
     }},
     // (a - b) × c
-    { kinds: ["range", "range", "factor"], build: (n) => {
+    { kinds: ["wide", "wide", "factor"], build: (n) => {
       const inner = n[0]! - n[1]!;
       if (!this.inFactorRange(inner)) return null;
       const result = inner * n[2]!;
-      if (!this.inRange(result)) return null;
       return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]}`, steps: [`${inner} × ${n[2]}`, `${result}`] };
     }},
     // a × (b + c)
@@ -495,117 +488,108 @@ export class MultiStep extends BaseMathProblem {
       const inner = n[1]! + n[2]!;
       if (!this.inFactorRange(inner)) return null;
       const result = n[0]! * inner;
-      if (!this.inRange(result)) return null;
       return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} )`, steps: [`${n[0]} × ${inner}`, `${result}`] };
     }},
     // a × (b - c)
-    { kinds: ["factor", "range", "range"], build: (n) => {
+    { kinds: ["factor", "wide", "wide"], build: (n) => {
       const inner = n[1]! - n[2]!;
       if (!this.inFactorRange(inner)) return null;
       const result = n[0]! * inner;
-      if (!this.inRange(result)) return null;
       return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} )`, steps: [`${n[0]} × ${inner}`, `${result}`] };
     }},
     // (a + b) ÷ c：除数与商须为表内数（口诀表内除法）。
     // 注意：商即最终答案，故数值最小值须 ≤ 因数最大值，否则此模板无解（自动跳过）
-    { kinds: ["range", "range", "factor"], build: (n) => {
+    { kinds: ["wide", "wide", "factor"], build: (n) => {
       const inner = n[0]! + n[1]!;
-      if (!this.inRange(inner)) return null;
       if (inner % n[2]! !== 0) return null;
       const result = inner / n[2]!;
       if (!this.inFactorRange(result)) return null;
-      if (!this.inRange(result)) return null;
       return { expr: `( ${n[0]} + ${n[1]} ) ÷ ${n[2]}`, steps: [`${inner} ÷ ${n[2]}`, `${result}`] };
     }},
     // (a - b) ÷ c：除数与商须为表内数（口诀表内除法）
-    { kinds: ["range", "range", "factor"], build: (n) => {
+    { kinds: ["wide", "wide", "factor"], build: (n) => {
       const inner = n[0]! - n[1]!;
-      if (inner < 1 || !this.inRange(inner)) return null;
+      if (inner < 1) return null;
       if (inner % n[2]! !== 0) return null;
       const result = inner / n[2]!;
       if (!this.inFactorRange(result)) return null;
-      if (!this.inRange(result)) return null;
       return { expr: `( ${n[0]} - ${n[1]} ) ÷ ${n[2]}`, steps: [`${inner} ÷ ${n[2]}`, `${result}`] };
     }},
     // ============ 4 个数 ============
     // a × (b + c) + d
-    { kinds: ["factor", "small", "small", "range"], build: (n) => {
+    { kinds: ["factor", "small", "small", "wide"], build: (n) => {
       const inner = n[1]! + n[2]!;
       if (!this.inFactorRange(inner)) return null;
       const mid = n[0]! * inner;
-      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      if (mid < 1) return null;
       const result = mid + n[3]!;
-      if (!this.inRange(result)) return null;
       return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} ) + ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} + ${n[3]}`, `${result}`] };
     }},
     // a × (b + c) - d
-    { kinds: ["factor", "small", "small", "range"], build: (n) => {
+    { kinds: ["factor", "small", "small", "wide"], build: (n) => {
       const inner = n[1]! + n[2]!;
       if (!this.inFactorRange(inner)) return null;
       const mid = n[0]! * inner;
-      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      if (mid < 1) return null;
       const result = mid - n[3]!;
-      if (result < 1 || !this.inRange(result)) return null;
+      if (result < 1) return null;
       return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} ) - ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} - ${n[3]}`, `${result}`] };
     }},
     // a × (b - c) + d
-    { kinds: ["factor", "range", "range", "range"], build: (n) => {
+    { kinds: ["factor", "wide", "wide", "wide"], build: (n) => {
       const inner = n[1]! - n[2]!;
       if (!this.inFactorRange(inner)) return null;
       const mid = n[0]! * inner;
-      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      if (mid < 1) return null;
       const result = mid + n[3]!;
-      if (!this.inRange(result)) return null;
       return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} ) + ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} + ${n[3]}`, `${result}`] };
     }},
     // a × (b - c) - d
-    { kinds: ["factor", "range", "range", "range"], build: (n) => {
+    { kinds: ["factor", "wide", "wide", "wide"], build: (n) => {
       const inner = n[1]! - n[2]!;
       if (!this.inFactorRange(inner)) return null;
       const mid = n[0]! * inner;
-      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      if (mid < 1) return null;
       const result = mid - n[3]!;
-      if (result < 1 || !this.inRange(result)) return null;
+      if (result < 1) return null;
       return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} ) - ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} - ${n[3]}`, `${result}`] };
     }},
     // (a + b) × c + d
-    { kinds: ["small", "small", "factor", "range"], build: (n) => {
+    { kinds: ["small", "small", "factor", "wide"], build: (n) => {
       const inner = n[0]! + n[1]!;
       if (!this.inFactorRange(inner)) return null;
       const mid = inner * n[2]!;
-      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      if (mid < 1) return null;
       const result = mid + n[3]!;
-      if (!this.inRange(result)) return null;
       return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]} + ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} + ${n[3]}`, `${result}`] };
     }},
     // (a + b) × c - d
-    { kinds: ["small", "small", "factor", "range"], build: (n) => {
+    { kinds: ["small", "small", "factor", "wide"], build: (n) => {
       const inner = n[0]! + n[1]!;
       if (!this.inFactorRange(inner)) return null;
       const mid = inner * n[2]!;
-      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      if (mid < 1) return null;
       const result = mid - n[3]!;
-      if (result < 1 || !this.inRange(result)) return null;
+      if (result < 1) return null;
       return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]} - ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} - ${n[3]}`, `${result}`] };
     }},
     // (a - b) × c + d
-    { kinds: ["range", "range", "factor", "range"], build: (n) => {
+    { kinds: ["wide", "wide", "factor", "wide"], build: (n) => {
       const inner = n[0]! - n[1]!;
       if (!this.inFactorRange(inner)) return null;
       const mid = inner * n[2]!;
-      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      if (mid < 1) return null;
       const result = mid + n[3]!;
-      if (!this.inRange(result)) return null;
       return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]} + ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} + ${n[3]}`, `${result}`] };
     }},
     // (a - b) × c - d
-    { kinds: ["range", "range", "factor", "range"], build: (n) => {
+    { kinds: ["wide", "wide", "factor", "wide"], build: (n) => {
       const inner = n[0]! - n[1]!;
       if (!this.inFactorRange(inner)) return null;
       const mid = inner * n[2]!;
-      if (mid < 1 || mid > Math.max(this.max * 1.5, this.min)) return null;
+      if (mid < 1) return null;
       const result = mid - n[3]!;
-      if (result < 1 || !this.inRange(result)) return null;
+      if (result < 1) return null;
       return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]} - ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} - ${n[3]}`, `${result}`] };
     }},
   ];
@@ -629,7 +613,7 @@ export class MultiStep extends BaseMathProblem {
               ? this.randFactor()
               : kind === "small"
                 ? this.rand(1, this.factorMax)
-                : this.rand(this.min, this.max),
+                : this.rand(1, this.factorMax * this.factorMax),
           );
         }
         result = tpl.build(nums);
