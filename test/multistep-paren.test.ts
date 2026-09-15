@@ -96,4 +96,44 @@ describe("MultiStep 带括号生成", () => {
       expect(q).not.toContain("÷");
     }
   });
+
+  it("默认范围下不出现超表内除法", () => {
+    // min=10 时表内商（≤9）不可能落在数值范围内，除法括号模板应自动无解
+    const ms = new MultiStep(3, 10, 100, true, false, 2, 9, true);
+    for (let i = 0; i < 200; i++) {
+      const [q, ans, steps] = ms.generate();
+      if (q.includes("÷")) {
+        const a = parseInt(ans, 10);
+        expect(a).toBeGreaterThanOrEqual(2);
+        expect(a).toBeLessThanOrEqual(9);
+        checkDivSteps(steps);
+      }
+    }
+  });
+
+  it("小范围下除法括号为口诀表内除法", () => {
+    const ms = new MultiStep(3, 1, 30, true, false, 2, 9, true);
+    let divCount = 0;
+    for (let i = 0; i < 500; i++) {
+      const [q, ans, steps] = ms.generate();
+      expect(q).toContain("(");
+      const a = parseInt(ans, 10);
+      expect(a).toBeGreaterThanOrEqual(1);
+      expect(a).toBeLessThanOrEqual(30);
+      expect(parseInt(steps[steps.length - 1]!, 10)).toBe(a);
+      for (const v of parenValuesForMul(q)) {
+        expect(v).toBeGreaterThanOrEqual(2);
+        expect(v).toBeLessThanOrEqual(9);
+      }
+      if (q.includes("÷")) {
+        divCount++;
+        // 商（即答案）须为表内数
+        expect(a).toBeGreaterThanOrEqual(2);
+        expect(a).toBeLessThanOrEqual(9);
+        checkDivSteps(steps);
+      }
+    }
+    // 小范围下除法括号应能生成出来
+    expect(divCount).toBeGreaterThan(0);
+  });
 });

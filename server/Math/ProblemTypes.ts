@@ -466,7 +466,8 @@ export class MultiStep extends BaseMathProblem {
    *   'small'  => [1, factorMax]（括号内加法的小加数，保证和落在表内）
    * - build(nums) 返回 { expr, steps } 或 null（数值不满足约束时）
    * - 约束：括号外为 × 时，括号内计算结果须为表内数（因数范围），
-   *   保证每一步乘法都是九九乘法表以内的运算
+   *   括号外为 ÷ 时，除数与商须为表内数；
+   *   保证每一步乘除都是九九乘法表以内的运算
    */
   private parenTemplates: {
     kinds: ("factor" | "range" | "small")[];
@@ -505,21 +506,24 @@ export class MultiStep extends BaseMathProblem {
       if (!this.inRange(result)) return null;
       return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} )`, steps: [`${n[0]} × ${inner}`, `${result}`] };
     }},
-    // (a + b) ÷ c
+    // (a + b) ÷ c：除数与商须为表内数（口诀表内除法）。
+    // 注意：商即最终答案，故数值最小值须 ≤ 因数最大值，否则此模板无解（自动跳过）
     { kinds: ["range", "range", "factor"], build: (n) => {
       const inner = n[0]! + n[1]!;
       if (!this.inRange(inner)) return null;
       if (inner % n[2]! !== 0) return null;
       const result = inner / n[2]!;
+      if (!this.inFactorRange(result)) return null;
       if (!this.inRange(result)) return null;
       return { expr: `( ${n[0]} + ${n[1]} ) ÷ ${n[2]}`, steps: [`${inner} ÷ ${n[2]}`, `${result}`] };
     }},
-    // (a - b) ÷ c
+    // (a - b) ÷ c：除数与商须为表内数（口诀表内除法）
     { kinds: ["range", "range", "factor"], build: (n) => {
       const inner = n[0]! - n[1]!;
       if (inner < 1 || !this.inRange(inner)) return null;
       if (inner % n[2]! !== 0) return null;
       const result = inner / n[2]!;
+      if (!this.inFactorRange(result)) return null;
       if (!this.inRange(result)) return null;
       return { expr: `( ${n[0]} - ${n[1]} ) ÷ ${n[2]}`, steps: [`${inner} ÷ ${n[2]}`, `${result}`] };
     }},

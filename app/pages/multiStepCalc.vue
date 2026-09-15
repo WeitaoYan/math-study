@@ -159,8 +159,9 @@
                   v-model="form.multi_step_use_parentheses"
                 />
                 <span class="checkmark"></span>
-                使用括号（如 (a+b)×c、a×(b+c)+d，需开启乘除运算）
+                使用括号（如 (a+b)×c，括号内外乘除均在口诀表内，需开启乘除运算）
               </label>
+              <span class="help-text">除法括号题的商为表内数；数值最小值大于因数最大值时，仅生成乘法括号题</span>
             </div>
 
             <div v-if="form.multi_step_use_mul_div" class="form-row">
