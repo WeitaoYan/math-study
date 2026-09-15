@@ -523,7 +523,7 @@ export class MultiStep extends BaseMathProblem {
       const mid = n[0]! * inner;
       if (mid < 1) return null;
       const result = mid + n[3]!;
-      return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} ) + ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} + ${n[3]}`, `${result}`] };
+      return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} ) + ${n[3]}`, steps: [`${n[0]} × ${inner} + ${n[3]}`, `${mid} + ${n[3]}`, `${result}`] };
     }},
     // a × (b + c) - d
     { kinds: ["factor", "small", "small", "wide"], build: (n) => {
@@ -533,7 +533,7 @@ export class MultiStep extends BaseMathProblem {
       if (mid < 1) return null;
       const result = mid - n[3]!;
       if (result < 1) return null;
-      return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} ) - ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} - ${n[3]}`, `${result}`] };
+      return { expr: `${n[0]} × ( ${n[1]} + ${n[2]} ) - ${n[3]}`, steps: [`${n[0]} × ${inner} - ${n[3]}`, `${mid} - ${n[3]}`, `${result}`] };
     }},
     // a × (b - c) + d
     { kinds: ["factor", "wide", "wide", "wide"], build: (n) => {
@@ -542,7 +542,7 @@ export class MultiStep extends BaseMathProblem {
       const mid = n[0]! * inner;
       if (mid < 1) return null;
       const result = mid + n[3]!;
-      return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} ) + ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} + ${n[3]}`, `${result}`] };
+      return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} ) + ${n[3]}`, steps: [`${n[0]} × ${inner} + ${n[3]}`, `${mid} + ${n[3]}`, `${result}`] };
     }},
     // a × (b - c) - d
     { kinds: ["factor", "wide", "wide", "wide"], build: (n) => {
@@ -552,7 +552,7 @@ export class MultiStep extends BaseMathProblem {
       if (mid < 1) return null;
       const result = mid - n[3]!;
       if (result < 1) return null;
-      return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} ) - ${n[3]}`, steps: [`${n[0]} × ${inner}`, `${mid} - ${n[3]}`, `${result}`] };
+      return { expr: `${n[0]} × ( ${n[1]} - ${n[2]} ) - ${n[3]}`, steps: [`${n[0]} × ${inner} - ${n[3]}`, `${mid} - ${n[3]}`, `${result}`] };
     }},
     // (a + b) × c + d
     { kinds: ["small", "small", "factor", "wide"], build: (n) => {
@@ -561,7 +561,7 @@ export class MultiStep extends BaseMathProblem {
       const mid = inner * n[2]!;
       if (mid < 1) return null;
       const result = mid + n[3]!;
-      return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]} + ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} + ${n[3]}`, `${result}`] };
+      return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]} + ${n[3]}`, steps: [`${inner} × ${n[2]} + ${n[3]}`, `${mid} + ${n[3]}`, `${result}`] };
     }},
     // (a + b) × c - d
     { kinds: ["small", "small", "factor", "wide"], build: (n) => {
@@ -571,7 +571,7 @@ export class MultiStep extends BaseMathProblem {
       if (mid < 1) return null;
       const result = mid - n[3]!;
       if (result < 1) return null;
-      return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]} - ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} - ${n[3]}`, `${result}`] };
+      return { expr: `( ${n[0]} + ${n[1]} ) × ${n[2]} - ${n[3]}`, steps: [`${inner} × ${n[2]} - ${n[3]}`, `${mid} - ${n[3]}`, `${result}`] };
     }},
     // (a - b) × c + d
     { kinds: ["wide", "wide", "factor", "wide"], build: (n) => {
@@ -580,7 +580,7 @@ export class MultiStep extends BaseMathProblem {
       const mid = inner * n[2]!;
       if (mid < 1) return null;
       const result = mid + n[3]!;
-      return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]} + ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} + ${n[3]}`, `${result}`] };
+      return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]} + ${n[3]}`, steps: [`${inner} × ${n[2]} + ${n[3]}`, `${mid} + ${n[3]}`, `${result}`] };
     }},
     // (a - b) × c - d
     { kinds: ["wide", "wide", "factor", "wide"], build: (n) => {
@@ -590,7 +590,7 @@ export class MultiStep extends BaseMathProblem {
       if (mid < 1) return null;
       const result = mid - n[3]!;
       if (result < 1) return null;
-      return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]} - ${n[3]}`, steps: [`${inner} × ${n[2]}`, `${mid} - ${n[3]}`, `${result}`] };
+      return { expr: `( ${n[0]} - ${n[1]} ) × ${n[2]} - ${n[3]}`, steps: [`${inner} × ${n[2]} - ${n[3]}`, `${mid} - ${n[3]}`, `${result}`] };
     }},
   ];
 

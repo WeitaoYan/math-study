@@ -81,6 +81,12 @@ describe("MultiStep 带括号生成", () => {
         expect(v).toBeGreaterThanOrEqual(2);
         expect(v).toBeLessThanOrEqual(9);
       }
+      // 第一步须保留尾部的 +d / -d（如 "4 × 9 - 23"，不能丢成 "4 × 9"）
+      const tail = q.match(/([+-])\s*(\d+)\s*=\s*___$/);
+      expect(tail).not.toBeNull();
+      expect(steps[0]).toContain(`${tail![1]} ${tail![2]}`);
+      // 第二步应为 mid ± d 的形式
+      expect(steps[1]).toMatch(/^\d+ [+-] \d+$/);
       checkDivSteps(steps);
     }
   });
