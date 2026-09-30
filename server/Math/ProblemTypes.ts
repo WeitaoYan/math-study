@@ -136,12 +136,11 @@ export class Addition extends BaseMathProblem {
           Math.floor(Math.random() * (maxSteps - minSteps + 1)) + minSteps;
         a = aSteps * roundTo;
         const bSteps =
-          Math.floor(Math.random() * (maxSteps - aSteps + 1)) + aSteps;
+          Math.floor(Math.random() * (maxSteps - aSteps - minSteps + 1)) + minSteps;
         b = bSteps * roundTo;
       } else {
-        a =
-          Math.floor(Math.random() * (maxSum - minSum)) + minSum;
-        b = Math.floor(Math.random() * (maxSum - a)) + a;
+        a = Math.floor(Math.random() * (maxSum - minSum + 1)) + minSum;
+        b = Math.floor(Math.random() * (maxSum - a - minSum + 1)) + minSum;
       }
 
       const r = a + b;
@@ -221,16 +220,15 @@ export class Subtraction extends BaseMathProblem {
           Math.floor(Math.random() * (maxSteps - minSteps + 1)) + minSteps;
         a = aSteps * roundTo;
         const bSteps =
-          Math.floor(Math.random() * (maxSteps - aSteps + 1)) + aSteps;
+          Math.floor(Math.random() * (aSteps - minSteps + 1)) + minSteps;
         b = bSteps * roundTo;
       } else {
-        a =
-          Math.floor(Math.random() * (maxSum - minSum)) + minSum;
-        b = Math.floor(Math.random() * (maxSum - a)) + a;
+        a = Math.floor(Math.random() * (maxSum - minSum + 1)) + minSum;
+        b = Math.floor(Math.random() * (a - minSum + 1)) + minSum;
       }
 
-      const r = a + b;
-      if (r > maxSum) continue;
+      const r = a - b;
+      if (r < minSum) continue;
       const borrowOk = borrow
         ? new CarryValidator().isValid(a, b)
         : new NoCarryValidator().isValid(a, b);
