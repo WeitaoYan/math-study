@@ -10,6 +10,8 @@
       </div>
     </div>
 
+    <AdUnit slot="2082108475" />
+
     <form @submit.prevent="generateMathProblems" class="config-form">
       <div class="levels-grid">
         <!-- 20以内加减法 -->

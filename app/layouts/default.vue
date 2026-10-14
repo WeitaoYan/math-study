@@ -4,9 +4,13 @@
       <NuxtLink to="/"><h1>爱学习</h1></NuxtLink>
     </header>
 
+    <AdUnit slot="4500388259" />
+
     <main class="layout-main">
       <slot />
     </main>
+
+    <AdUnit slot="8398525801" />
 
     <footer class="layout-footer">
       <p>&copy; {{ new Date().getFullYear() }} 爱学习. All rights reserved.</p>

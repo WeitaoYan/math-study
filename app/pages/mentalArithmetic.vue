@@ -8,6 +8,8 @@
       </div>
     </div>
 
+    <AdUnit slot="3423110309" />
+
     <form @submit.prevent="generateMathProblems" class="config-form">
       <div class="form-grid">
         <!-- 基本设置 -->

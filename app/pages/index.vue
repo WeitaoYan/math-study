@@ -5,6 +5,8 @@
       <p>这是一个数学学习网站，方便家长打印数学题目</p>
     </header>
 
+    <AdUnit slot="2080529466" />
+
     <main class="main">
       <div class="card">
         <div class="card-icon">
@@ -52,6 +54,8 @@
         </NuxtLink>
       </div>
 
+      <AdUnit slot="5119335358" class="ad-full" />
+
       <div class="card">
         <div class="card-icon">
           <svg
@@ -90,6 +94,8 @@
           </svg>
         </NuxtLink>
       </div>
+
+      <AdUnit slot="3614681998" class="ad-full" />
 
       <div class="card">
         <div class="card-icon">
@@ -133,6 +139,8 @@
           </svg>
         </NuxtLink>
       </div>
+
+      <AdUnit slot="3810123112" class="ad-full" />
     </main>
   </div>
 </template>
@@ -171,6 +179,10 @@ useHead({
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+}
+
+.ad-full {
+  grid-column: 1 / -1;
 }
 
 .card {
