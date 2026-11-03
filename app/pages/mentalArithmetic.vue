@@ -8,7 +8,7 @@
       </div>
     </div>
 
-    <AdUnit slot="3423110309" />
+    <!-- <AdUnit slot="3423110309" /> -->
 
     <form @submit.prevent="generateMathProblems" class="config-form">
       <div class="form-grid">
@@ -59,11 +59,7 @@
 
               <div class="form-group half-width">
                 <label for="columns" class="form-label">每页列数</label>
-                <select
-                  id="columns"
-                  v-model="form.columns"
-                  class="form-input"
-                >
+                <select id="columns" v-model="form.columns" class="form-input">
                   <option value="auto">自动</option>
                   <option :value="3">3 列</option>
                   <option :value="4">4 列</option>
@@ -165,7 +161,9 @@
               </label>
             </div>
             <div class="form-group">
-              <label for="addition_round_to" class="form-label">整十整百约束</label>
+              <label for="addition_round_to" class="form-label"
+                >整十整百约束</label
+              >
               <select
                 id="addition_round_to"
                 v-model.number="form.addition_round_to"
@@ -239,7 +237,9 @@
               </label>
             </div>
             <div class="form-group">
-              <label for="subtraction_round_to" class="form-label">整十整百约束</label>
+              <label for="subtraction_round_to" class="form-label"
+                >整十整百约束</label
+              >
               <select
                 id="subtraction_round_to"
                 v-model.number="form.subtraction_round_to"

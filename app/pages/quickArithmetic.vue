@@ -10,7 +10,7 @@
       </div>
     </div>
 
-    <AdUnit slot="2082108475" />
+    <!-- <AdUnit slot="2082108475" /> -->
 
     <form @submit.prevent="generateMathProblems" class="config-form">
       <div class="levels-grid">
@@ -688,7 +688,9 @@ const generateMathProblems = async () => {
   font-size: 0.95rem;
   color: #2d3748;
   background: #fff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   box-sizing: border-box;
 }
 
@@ -748,7 +750,9 @@ const generateMathProblems = async () => {
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .switch-group:hover {

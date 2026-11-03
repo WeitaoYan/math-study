@@ -54,7 +54,7 @@
         </NuxtLink>
       </div>
 
-      <AdUnit slot="5119335358" class="ad-full" />
+      <!-- <AdUnit slot="5119335358" class="ad-full" /> -->
 
       <div class="card">
         <div class="card-icon">
@@ -95,7 +95,7 @@
         </NuxtLink>
       </div>
 
-      <AdUnit slot="3614681998" class="ad-full" />
+      <!-- <AdUnit slot="3614681998" class="ad-full" /> -->
 
       <div class="card">
         <div class="card-icon">
@@ -110,15 +110,13 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path
-              d="M4 7V4h16v3M9 20h6M12 4v16"
-            ></path>
+            <path d="M4 7V4h16v3M9 20h6M12 4v16"></path>
           </svg>
         </div>
         <h2>脱式计算生成器</h2>
         <p>
-          生成多步混合运算题（如 25 + 36 - 18 = ___），
-          每道题下方留 5 行空位，方便孩子书写每一步计算过程
+          生成多步混合运算题（如 25 + 36 - 18 = ___）， 每道题下方留 5
+          行空位，方便孩子书写每一步计算过程
         </p>
         <NuxtLink to="/multiStepCalc" class="card-link">
           立即生成
@@ -190,7 +188,9 @@ useHead({
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   position: relative;
   display: flex;
   flex-direction: column;
