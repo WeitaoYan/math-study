@@ -1,278 +1,64 @@
 <template>
-  <div class="container">
-    <header class="header">
-      <h1>欢迎来到爱学习</h1>
-      <p>这是一个数学学习网站，方便家长打印数学题目</p>
-    </header>
-
-    <AdUnit slot="2080529466" />
-
-    <main class="main">
-      <div class="card">
-        <div class="card-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
-            ></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-        </div>
-        <h2>自定义口算生成器</h2>
-        <p>
-          根据您的具体需求，自定义题目类型、难度、数量等参数，生成个性化口算练习PDF
-        </p>
-        <NuxtLink to="/mentalArithmetic" class="card-link">
-          开始自定义
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="arrow-icon"
-          >
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        </NuxtLink>
+  <div class="home-page">
+    <section class="home-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">一点练习，一点进步 / MATH PRACTICE</p>
+        <h1>每天一点练习，<br />让计算更有底气。</h1>
+        <p class="hero-description">预设题型一键选择，自定义口算按需组合。<br class="desktop-break" />口算每页20行，竖式和脱式保留过程区，系统按所选页数自动排版。</p>
+        <div class="hero-actions"><NuxtLink to="/quickArithmetic" class="button button-primary">选择口算题型<AppIcon name="bolt" /></NuxtLink><NuxtLink to="/practice" class="button button-secondary">自定义口算<AppIcon name="sliders" /></NuxtLink></div>
+        <div class="hero-features"><span><AppIcon name="check" />{{ presetCount }} 个口算题型</span><span><AppIcon name="check" />口算每页20行</span><span><AppIcon name="check" />自动安排每页题量</span></div>
       </div>
 
-      <!-- <AdUnit slot="5119335358" class="ad-full" /> -->
-
-      <div class="card">
-        <div class="card-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
+      <div class="hero-paper-wrap" aria-label="练习纸样式示意">
+        <span class="paper-floating-tag"><AppIcon name="download" />选好题目，直接打印</span>
+        <div class="hero-paper">
+          <div class="hero-paper-header"><span>今日口算练习</span><small>姓名：________　日期：________</small></div>
+          <div class="hero-paper-exercises"><span v-for="sample in samples" :key="sample">{{ sample }}</span></div>
+          <div class="hero-paper-process"><small>写出计算过程</small><strong>(35 + 28) ÷ 7</strong><i></i><i></i><i></i></div>
+          <div class="hero-paper-footer"><span>认真计算，仔细检查。</span><span>排版示意</span></div>
         </div>
-        <h2>快速口算生成器</h2>
-        <p>快速生成标准口算练习，一键创建PDF文件，适合日常练习和测试</p>
-        <NuxtLink to="/quickArithmetic" class="card-link">
-          立即生成
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="arrow-icon"
-          >
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
+        <span class="paper-bottom-tag"><span></span>让题目清晰，让书写从容。</span>
+      </div>
+    </section>
+
+    <AdUnit :slot="SITE_AD_SLOTS.homeIntro" />
+
+    <section class="home-tools" aria-labelledby="tools-heading">
+      <div class="section-heading"><div><p class="eyebrow">选择适合的练习</p><h2 id="tools-heading">想从哪一种开始？</h2></div><p>预设与自定义分开，排版均由系统自动安排。</p></div>
+      <div class="tool-grid">
+        <NuxtLink v-for="tool in tools" :key="tool.to" :to="tool.to" class="tool-card" :class="tool.tone">
+          <div class="tool-card-top"><span class="tool-icon"><AppIcon :name="tool.icon" /></span><span class="tool-tag">{{ tool.tag }}</span></div>
+          <h3>{{ tool.title }}</h3><p>{{ tool.description }}</p><span class="tool-card-link">{{ tool.action }}<AppIcon name="arrow" /></span>
         </NuxtLink>
       </div>
+    </section>
 
-      <!-- <AdUnit slot="3614681998" class="ad-full" /> -->
+    <AdUnit :slot="SITE_AD_SLOTS.homeGuide" />
 
-      <div class="card">
-        <div class="card-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M4 7V4h16v3M9 20h6M12 4v16"></path>
-          </svg>
-        </div>
-        <h2>脱式计算生成器</h2>
-        <p>
-          生成多步混合运算题（如 25 + 36 - 18 = ___）， 每道题下方留 5
-          行空位，方便孩子书写每一步计算过程
-        </p>
-        <NuxtLink to="/multiStepCalc" class="card-link">
-          立即生成
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="arrow-icon"
-          >
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        </NuxtLink>
+    <section id="guide" class="home-guide" aria-labelledby="guide-heading">
+      <div class="section-heading"><div><p class="eyebrow">简单三步</p><h2 id="guide-heading">把练习安排得刚刚好。</h2></div><span class="subtle-tag">无需登录，即时生成</span></div>
+      <div class="guide-grid">
+        <article><span class="guide-step">01</span><h3>选择题目</h3><p>日常练习选预设题型；针对性训练用自定义口算调整比例、范围和进借位条件。</p></article>
+        <article><span class="guide-step">02</span><h3>选择打印页数</h3><p>想打印几张题目纸，就选择几页。系统按真实题目尺寸填满每页，不会额外多出零散页。</p></article>
+        <article><span class="guide-step">03</span><h3>预览并打印</h3><p>查看每页实际题数，直接下载相同的 A4 PDF。题干和书写区都由系统自动安排。</p></article>
       </div>
+    </section>
 
-      <AdUnit slot="3810123112" class="ad-full" />
-    </main>
+    <section class="home-tip"><span class="tip-icon"><AppIcon name="layout" /></span><div><h2>页数由你决定，排版由系统安排。</h2><p>预设与自定义口算都按每页20行排版；竖式和脱式自动保留合适的过程区。选择2页就得到2张题目纸。</p></div><NuxtLink to="/quickArithmetic" class="button button-secondary">开始选择<AppIcon name="arrow" /></NuxtLink></section>
   </div>
 </template>
 
 <script setup lang="ts">
-useHead({
-  title: "Math Study - 首页",
-  meta: [{ name: "description", content: "基于 Nuxt 的数学学习网站" }],
-});
+import { ARITHMETIC_PRESETS } from "#shared/utils/arithmeticPresets";
+import { SITE_AD_SLOTS } from "../utils/siteAds";
+
+useHead({ title: "首页", meta: [{ name: "description", content: "只选择题目类型和打印页数，自动推断每页题量与书写空间，生成真实 A4 数学练习 PDF。" }] });
+const presetCount = ARITHMETIC_PRESETS.length;
+const samples = ["37 + 26 = ____", "84 - 39 = ____", "7 × 8 = ____", "63 ÷ 9 = ____", "48 + 35 = ____", "92 - 47 = ____"];
+const tools = [
+  { title: "口算练习", icon: "bolt", tag: "日常巩固", description: "基础加减、乘除混合与整十整百，自动采用较紧凑的排版。", action: "选择口算类型", to: "/quickArithmetic", tone: "tone-green" },
+  { title: "自定义口算", icon: "sliders", tag: "针对性训练", description: "调整题型比例、数值范围、进位借位与填空方式，自动按每页20行打印。", action: "配置我的口算", to: "/practice", tone: "tone-slate" },
+  { title: "脱式计算", icon: "steps", tag: "过程训练", description: "两步、三步及括号运算，系统自动保留对应的过程书写区。", action: "选择脱式类型", to: "/multiStepCalc", tone: "tone-amber" },
+  { title: "竖式计算", icon: "layout", tag: "书写训练", description: "加减乘除与预列竖式，简单题每页多些，复杂题留白更大。", action: "选择竖式类型", to: "/verticalArithmetic", tone: "tone-teal" },
+];
 </script>
-
-<style scoped>
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.header h1 {
-  font-size: 2.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.header p {
-  font-size: 1.2rem;
-  color: #666;
-}
-
-.main {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-.ad-full {
-  grid-column: 1 / -1;
-}
-
-.card {
-  background: #f9f9f9;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.card-icon {
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e6f7ff;
-  border-radius: 50%;
-  margin-bottom: 1rem;
-  color: #1890ff;
-}
-
-.card h2 {
-  margin-top: 0;
-  color: #333;
-  font-size: 1.4rem;
-  margin-bottom: 0.5rem;
-}
-
-.card p {
-  color: #666;
-  margin-bottom: 1.5rem;
-  flex-grow: 1;
-}
-
-.card-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: auto;
-  padding: 0.75rem 1.5rem;
-  background-color: #007bff;
-  color: white;
-  text-decoration: none;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  width: 100%;
-  max-width: 200px;
-}
-
-.card-link:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-}
-
-.arrow-icon {
-  margin-left: 8px;
-  transition: transform 0.2s;
-}
-
-.card-link:hover .arrow-icon {
-  transform: translateX(2px);
-}
-@media (max-width: 768px) {
-  .header h1 {
-    font-size: 2rem; /* 从 2.5rem 缩小 */
-  }
-
-  .header p {
-    font-size: 1rem; /* 从 1.2rem 缩小 */
-  }
-
-  .container {
-    padding: 1rem; /* 减小容器内边距 */
-  }
-}
-
-/* 更小屏幕的适配 */
-@media (max-width: 480px) {
-  .header h1 {
-    font-size: 1.8rem;
-  }
-
-  .header p {
-    font-size: 0.9rem;
-  }
-}
-</style>

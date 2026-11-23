@@ -33,7 +33,7 @@ export function parseCustomConfig(body: RequestBody): Config {
     body.columns && Number.isFinite(parseInt(body.columns, 10)) && parseInt(body.columns, 10) > 0
       ? parseInt(body.columns, 10)
       : autoColumns;
-  // 每页题数：缺省按 列数*20（与历史行为一致）
+  // 每组题数：保留旧字段名与列数*20 的历史缺省值，实际分页交给共享布局。
   const per_page_count = body.per_page_count
     ? Math.max(1, parseInt(body.per_page_count, 10) || columns * 20)
     : columns * 20;

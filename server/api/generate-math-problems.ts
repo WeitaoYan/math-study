@@ -10,8 +10,10 @@ import { parseRequestBody, parseBoolean } from "../utils/RequestConvert";
 import { getPresetConfig } from "../Math/LevelPresets";
 import { parseCustomConfig } from "../Math/RequestParser";
 import { generateProblems } from "../Math/ProblemGenerator";
-import { renderPage, renderAnswerPage } from "../renderer/PdfRenderer";
+import { renderPage, renderAnswerPage, renderWorksheetPlan } from "../renderer/PdfRenderer";
 import type { Config } from "../Math/Config";
+import { applyWorksheetRequest } from "../utils/WorksheetRequest";
+import { generateWorksheetByPages, resolvePageWorksheetRequest } from "../Math/PageWorksheetGenerator";
 
 // ==================== 请求体类型定义 ====================
 export interface RequestBody {
@@ -49,6 +51,15 @@ export interface RequestBody {
   multi_step_use_parentheses?: string;
   multi_step_factor_min?: string;
   multi_step_factor_max?: string;
+  worksheet_type?: string;
+  problem_count?: number;
+  workspace_height_mm?: number;
+  workspace_guide?: string;
+  font_size_pt?: number;
+  row_gap_mm?: number;
+  vertical_mode?: string;
+  question_type?: string;
+  page_count?: number;
 }
 
 // ==================== API Handler ====================
@@ -63,10 +74,38 @@ export default defineEventHandler(async (event) => {
     const rawBody = await readRawBody(event);
     const body = parseRequestBody(rawBody, event) as RequestBody;
 
+    // 简化界面只传题型和页数；布局与每页题数完全由题型及实际内容推断。
+    if (body.question_type !== undefined || body.page_count !== undefined) {
+      const { type, pages } = resolvePageWorksheetRequest(body.question_type, body.page_count, body as unknown as Record<string, unknown>);
+      const doc = await createDoc();
+      const plan = generateWorksheetByPages(doc, type, pages);
+      renderWorksheetPlan(doc, plan, { title: type.title });
+      event.node.res.setHeader("X-Worksheet-Question-Pages", String(plan.pages.length));
+      event.node.res.setHeader("X-Worksheet-Answer-Pages", "0");
+      event.node.res.setHeader("X-Worksheet-Total-Pages", String(doc.getNumberOfPages()));
+      event.node.res.setHeader("X-Worksheet-Question-Count", String(plan.problems.length));
+      event.node.res.setHeader("X-Worksheet-Columns", String(plan.columns));
+      event.node.res.setHeader("X-Worksheet-Questions-Per-Page", plan.pages.map((page) => page.questions.length).join(","));
+      const names = { oral: "口算练习题.pdf", steps: "脱式计算题.pdf", vertical: "竖式计算题.pdf" };
+      return responsePDF(doc, event, names[type.kind]);
+    }
+
     // 2. 构建配置（快速预设 or 自定义参数）
     let config: Config = body.level
       ? getPresetConfig(body.level)
       : parseCustomConfig(body);
+
+    // 快速预设与自定义模式共用组数和起始编号，不改变题目生成规则。
+    if (body.count !== undefined) {
+      const count = Number(body.count);
+      if (!Number.isSafeInteger(count) || count < 1) throw new Error("配置无法生成：生成组数须为正整数");
+      config.count = count;
+    }
+    if (body.start !== undefined) {
+      const start = Number(body.start);
+      if (!Number.isSafeInteger(start) || start < 1) throw new Error("配置无法生成：起始编号须为正整数");
+      config.start = start;
+    }
 
     // 快速模式下也允许覆盖「每页题数 / 列数 / 答案页」
     if (body.per_page_count) {
@@ -88,18 +127,28 @@ export default defineEventHandler(async (event) => {
       config.fill_mode = body.fill_mode;
     }
 
+    applyWorksheetRequest(config, body);
+
     // 3. 生成 PDF：每组先生成一次题目，再渲染题目页与（可选的）答案页
     const doc = await createDoc();
+    let questionPages = 0;
+    let answerPages = 0;
     for (let i = 0; i < config.count; i++) {
       const problems = generateProblems(config);
-      renderPage(doc, i, config, problems);
+      questionPages += renderPage(doc, i, config, problems).pages.length;
       if (config.include_answers) {
-        renderAnswerPage(doc, i, config, problems);
+        answerPages += renderAnswerPage(doc, i, config, problems).pages.length;
       }
     }
 
+    // 页数来自真实渲染结果，不用“组数”猜测纸张数量。
+    event.node.res.setHeader("X-Worksheet-Question-Pages", String(questionPages));
+    event.node.res.setHeader("X-Worksheet-Answer-Pages", String(answerPages));
+    event.node.res.setHeader("X-Worksheet-Total-Pages", String(doc.getNumberOfPages()));
+
     // 4. 返回 PDF
-    return responsePDF(doc, event);
+    const filenames = { oral: "口算练习题.pdf", steps: "脱式计算题.pdf", vertical: "竖式计算题.pdf" };
+    return responsePDF(doc, event, filenames[config.worksheet!.type]);
   } catch (error) {
     console.error("PDF生成错误:", error);
     const msg = (error as Error)?.message ?? "";

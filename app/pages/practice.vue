@@ -1,0 +1,1 @@
+<template><ArithmeticConfigurator /></template>

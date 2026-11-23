@@ -3,6 +3,7 @@ import {
   NoCarryValidator,
   CarryValidator,
 } from "./Validates.js";
+import type { ArithmeticOperator, ProblemMetadata } from "../../shared/types/mathProblem";
 
 /**
  * 数学题基类
@@ -16,6 +17,8 @@ class BaseMathProblem {
 
   /** 填空模式：'left' | 'right' | 'result' | 'none'，未设置则随机隐藏 */
   fillMode?: string;
+  /** 仅记录已生成的操作数，供竖式呈现复用。 */
+  metadata?: ProblemMetadata;
 
   /**
    * 格式化题目各部分，根据 spacing 开关决定是否加空格
@@ -40,12 +43,14 @@ class BaseMathProblem {
     result: number,
     choice?: string,
   ): [string, string] {
-    const choices = ["left", "right", "result"];
+    const choices = ["left", "right", "result"] as const;
     const raw = choice || this.fillMode;
     const selectedChoice =
       raw === "left" || raw === "right" || raw === "result" || raw === "none"
         ? raw
-        : choices[Math.floor(Math.random() * choices.length)];
+        : choices[Math.floor(Math.random() * choices.length)]!;
+
+    this.metadata = { kind: "binary", operator: this.symbol as ArithmeticOperator, left, right, result, blank: selectedChoice };
 
     // 不填空：输出完整算式（无 ___ 占位）
     if (selectedChoice === "none") {
@@ -75,7 +80,7 @@ class BaseMathProblem {
  */
 export class Addition extends BaseMathProblem {
   /** @type {string} */
-  symbol = "+";
+  override symbol = "+";
   maxSum: number;
   minSum: number;
   roundTo: number;
@@ -159,7 +164,7 @@ export class Addition extends BaseMathProblem {
  */
 export class Subtraction extends BaseMathProblem {
   /** @type {string} */
-  symbol = "-";
+  override symbol = "-";
   maxSum: number;
   minSum: number;
   roundTo: number;
@@ -246,7 +251,7 @@ export class Subtraction extends BaseMathProblem {
  */
 export class MultiStep extends BaseMathProblem {
   /** @type {string} */
-  symbol = "";
+  override symbol = "";
   terms: number;
   min: number;
   max: number;
@@ -647,7 +652,7 @@ export class MultiStep extends BaseMathProblem {
  */
 export class Multiplication extends BaseMathProblem {
   /** @type {string} */
-  symbol = "×";
+  override symbol = "×";
   minFactor: number;
   maxFactor: number;
 
@@ -684,7 +689,7 @@ export class Multiplication extends BaseMathProblem {
  */
 export class Division extends BaseMathProblem {
   /** @type {string} */
-  symbol = "÷";
+  override symbol = "÷";
   minFactor: number;
   maxFactor: number;
   /**
@@ -721,7 +726,7 @@ export class Division extends BaseMathProblem {
  */
 export class DivisionWithRemainder extends BaseMathProblem {
   /** @type {string} */
-  symbol = "÷";
+  override symbol = "÷";
   minFactor: number;
   maxFactor: number;
 
@@ -740,6 +745,9 @@ export class DivisionWithRemainder extends BaseMathProblem {
    * @returns {[string, string]} 公式字符串和答案
    */
   generate(): [string, string] {
+    if (!Number.isSafeInteger(this.minFactor) || !Number.isSafeInteger(this.maxFactor) || this.minFactor < 1 || this.maxFactor < Math.max(2, this.minFactor)) {
+      throw new Error("配置无法生成有余数除法：除数范围须为正整数，且最大除数至少为 2");
+    }
     while (true) {
       // 生成除数
       const divisor =
@@ -784,6 +792,7 @@ export class DivisionWithRemainder extends BaseMathProblem {
               "=",
               "___",
             ]);
+      this.metadata = { kind: "remainder", operator: "÷", left: dividend, right: divisor, result: quotient, remainder, blank: this.fillMode === "none" ? "none" : "result" };
       return [problem, `${quotient}······${remainder}`];
     }
   }

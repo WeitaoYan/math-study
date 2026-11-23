@@ -8,16 +8,14 @@
 </template>
 
 <script setup lang="ts">
+import { ADSENSE_CLIENT } from "./utils/siteAds";
+
+useHead({ titleTemplate: "%s · 爱学习" });
+
+// Google 脚本由 AdUnit 靠近视野时加载一次。
 useHead({
   meta: [
-    { name: "google-adsense-account", content: "ca-pub-7935584531479999" },
-  ],
-  script: [
-    {
-      src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7935584531479999",
-      crossorigin: "anonymous",
-      async: true,
-    },
+    { name: "google-adsense-account", content: ADSENSE_CLIENT },
   ],
 });
 </script>

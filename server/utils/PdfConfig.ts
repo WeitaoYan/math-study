@@ -29,12 +29,11 @@ export async function createDoc() {
   }
 }
 
-export function responsePDF(doc: jsPDF, event: any) {
+export function responsePDF(doc: jsPDF, event: any, filename = "小学生口算练习题.pdf") {
   // 生成 PDF 缓冲区
   const pdfBuffer = doc.output("arraybuffer");
 
   // 设置响应头 - 正确处理中文文件名
-  const filename = "小学生口算练习题.pdf";
   const encodedFilename = encodeURIComponent(filename);
 
   event.node.res.setHeader("Content-Type", "application/pdf");

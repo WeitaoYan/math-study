@@ -6,7 +6,6 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "preview": "npm run build && wrangler dev",
     "postinstall": "nuxt prepare",
     "deploy": "npm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
@@ -16,6 +15,7 @@
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "nuxt": "^4.2.2",
+    "pdfjs-dist": "^6.5.438",
     "subset-font": "^2.4.0",
     "vue": "^3.5.25",
     "vue-router": "^4.6.4"

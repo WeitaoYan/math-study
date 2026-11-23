@@ -28,7 +28,7 @@ export class CarryValidator extends Validation {
    * @param {number} b - 第二个数字
    * @returns {boolean} 如果有进位则返回true，否则返回false
    */
-  isValid(a: number, b: number) {
+  override isValid(a: number, b: number) {
     while (a > 0 || b > 0) {
       if ((a % 10) + (b % 10) > 9) {
         return true;
@@ -50,7 +50,7 @@ export class NoCarryValidator extends Validation {
    * @param {number} b - 第二个数字
    * @returns {boolean} 如果没有进位则返回true，否则返回false
    */
-  isValid(a: number, b: number) {
+  override isValid(a: number, b: number) {
     while (a > 0 || b > 0) {
       if ((a % 10) + (b % 10) > 9) {
         return false;
@@ -81,7 +81,7 @@ export class MaxValidator extends Validation {
    * @param {number} b - 第二个数字
    * @returns {boolean} 如果和不超过最大和则返回true，否则返回false
    */
-  isValid(a: number, b: number) {
+  override isValid(a: number, b: number) {
     return a + b <= this.maxSum;
   }
 }

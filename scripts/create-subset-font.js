@@ -3,8 +3,6 @@ import subsetFontModule from "subset-font";
 import * as fs from "fs";
 import * as path from "path";
 
-console.log("subsetFont module:", Object.keys(subsetFontModule)); // 调试输出
-
 // 尝试不同的导入方式
 const subsetFont =
   subsetFontModule.default || subsetFontModule.subsetFont || subsetFontModule;
@@ -70,6 +68,11 @@ const requiredCharacters = [
   "习",
   "脱",
   "式",
+  "答",
+  "案",
+  "竖页班级用请写出过程综合，。",
+  "以内不进位借法整混表含括号两三步四则多预列有余（）、～",
+  "自定义",
   // 运算符号
   "+",
   "-",
@@ -79,6 +82,7 @@ const requiredCharacters = [
   "(",
   ")",
   "：",
+  "·",
   // 其他符号
   " ",
   "_",

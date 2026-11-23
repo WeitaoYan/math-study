@@ -1,4 +1,5 @@
 // 使用类来模拟Python的dataclass
+import type { WorksheetSettings } from "../../shared/utils/worksheetLayout";
 export interface AdditionConfig {
   ratio: number;
   range_min: number;
@@ -97,7 +98,7 @@ export const empty_multi_step_config: MultiStepConfig = {
 export interface Config {
   count: number;
   start: number;
-  /** 每页题目数量（决定单页排版行数，不再写死 columns*20） */
+  /** 每组生成题数；保留旧字段名兼容请求，实际页数由布局模型决定。 */
   per_page_count: number;
   /** 每页列数，可由用户覆盖，缺省按数值范围自动计算 */
   columns: number;
@@ -109,9 +110,9 @@ export interface Config {
   /** 脱式计算（多步混合运算，每题下方留空行写计算过程） */
   multi_step: MultiStepConfig;
   include_answers: boolean;
-  columns: number;
   /** 紧凑模式：关闭符号两边的空格 */
   compact: boolean;
   /** 填空模式：'random' | 'result' | 'left' | 'right' | 'none' */
   fill_mode: string;
+  worksheet?: WorksheetSettings;
 }

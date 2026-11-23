@@ -7,7 +7,7 @@ function makeConfig() {
   return {
     count: 2,
     start: 1,
-    columns: 3,
+    columns: 2,
     per_page_count: 12,
     include_answers: true,
     fill_mode: "random",
