@@ -44,6 +44,8 @@
       </div>
     </section>
 
+    <section class="home-tip"><span class="tip-icon"><AppIcon name="book" /></span><div><h2>学完数学，记记单词。</h2><p>单词簿：按课本单元记单词，螺旋复习，家长可控激励。</p></div><a href="https://english.ikber.cc" target="_blank" rel="noopener" class="button button-secondary">去单词簿<AppIcon name="arrow" /></a></section>
+
     <section class="home-tip"><span class="tip-icon"><AppIcon name="layout" /></span><div><h2>页数由你决定，排版由系统安排。</h2><p>预设与自定义口算都按每页20行排版；竖式和脱式自动保留合适的过程区。选择2页就得到2张题目纸。</p></div><NuxtLink to="/quickArithmetic" class="button button-secondary">开始选择<AppIcon name="arrow" /></NuxtLink></section>
   </div>
 </template>

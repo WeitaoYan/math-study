@@ -26,7 +26,7 @@
     <footer class="site-footer">
       <div class="site-footer-inner">
         <div class="footer-brand"><AppIcon name="book" /><strong>爱学习</strong><span>从一张练习纸开始。</span></div>
-        <nav aria-label="页脚导航"><NuxtLink to="/practice">自定义口算</NuxtLink><NuxtLink to="/quickArithmetic">口算练习</NuxtLink><NuxtLink to="/#guide">使用指南</NuxtLink></nav>
+        <nav aria-label="页脚导航"><NuxtLink to="/practice">自定义口算</NuxtLink><NuxtLink to="/quickArithmetic">口算练习</NuxtLink><NuxtLink to="/#guide">使用指南</NuxtLink><a href="https://english.ikber.cc" target="_blank" rel="noopener">单词簿 · 英语学习</a></nav>
         <p>© {{ new Date().getFullYear() }} 爱学习 · A4 数学练习工具</p>
       </div>
     </footer>
