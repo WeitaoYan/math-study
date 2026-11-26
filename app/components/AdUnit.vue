@@ -2,13 +2,13 @@
   <section ref="container" v-show="!collapsed" class="ad-unit" :class="[`ad-unit--${placement}`, { 'is-empty': empty }]" :data-ad-slot="slot" aria-label="广告">
     <div class="ad-unit-label"><span>广告</span></div>
     <div class="ad-unit-content">
-      <ins v-if="renderAd" ref="adElement" class="adsbygoogle" style="display:block;width:100%;height:100%" :data-ad-client="client" :data-ad-slot="slot" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <ins v-if="renderAd" ref="adElement" class="adsbygoogle" style="display:block;width:100%;height:100%" :data-ad-client="client" :data-ad-slot="slot" :data-ad-format="adFormat" data-full-width-responsive="true"></ins>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { loadAdSenseScript, queueAdSenseRequest, requestAdSenseUnit } from "../utils/adsense";
 import { ADSENSE_CLIENT, isUnfilledAd } from "../utils/siteAds";
 
@@ -29,6 +29,14 @@ const adElement = ref<HTMLElement>();
 const renderAd = ref(false);
 const empty = ref(false);
 const collapsed = ref(false);
+// 横幅位只接横向广告（手机上一般是 320×50 / 320×100，桌面是 728×90 这类），
+// 不让 Google 在窄屏上塞 300×250、300×600 这种高矩形；侧栏在桌面保持
+// 300×250，窄屏下 CSS 已把它收成 100px 横条，同样只接横向广告。
+const adFormat = computed(() => {
+  if (props.placement === 'banner') return 'horizontal'
+  if (typeof window !== 'undefined' && window.innerWidth <= 900) return 'horizontal'
+  return 'auto'
+})
 let disposed = false;
 let loadingScript = false;
 let requested = false;
