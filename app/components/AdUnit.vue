@@ -2,7 +2,7 @@
   <section ref="container" v-show="!collapsed" class="ad-unit" :class="[`ad-unit--${placement}`, { 'is-empty': empty }]" :data-ad-slot="slot" aria-label="广告">
     <div class="ad-unit-label"><span>广告</span></div>
     <div class="ad-unit-content">
-      <ins v-if="renderAd" ref="adElement" class="adsbygoogle" style="display:block;width:100%;height:100%" :data-ad-client="client" :data-ad-slot="slot"></ins>
+      <ins v-if="renderAd" ref="adElement" class="adsbygoogle" style="display:block;width:100%;height:100%" :data-ad-client="client" :data-ad-slot="slot" data-ad-format="auto" data-full-width-responsive="true"></ins>
     </div>
   </section>
 </template>
