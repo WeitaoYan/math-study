@@ -29,13 +29,13 @@ const adElement = ref<HTMLElement>();
 const renderAd = ref(false);
 const empty = ref(false);
 const collapsed = ref(false);
-// 横幅位只接横向广告（手机上一般是 320×50 / 320×100，桌面是 728×90 这类），
-// 不让 Google 在窄屏上塞 300×250、300×600 这种高矩形；侧栏在桌面保持
-// 300×250，窄屏下 CSS 已把它收成 100px 横条，同样只接横向广告。
+// 横幅位：桌面接横向广告（728×90 这类），窄屏放宽到矩形（300×250 上限，
+// 比 auto 时的 300×600 半版矮一半），因为只接横向时手机上基本填不上；
+// 侧栏桌面保持 300×250，窄屏同样放宽到矩形。
 const adFormat = computed(() => {
-  if (props.placement === 'banner') return 'horizontal'
-  if (typeof window !== 'undefined' && window.innerWidth <= 900) return 'horizontal'
-  return 'auto'
+  const narrow = typeof window !== 'undefined' && window.innerWidth <= 900
+  if (props.placement === 'banner') return narrow ? 'rectangle' : 'horizontal'
+  return narrow ? 'rectangle' : 'auto'
 })
 let disposed = false;
 let loadingScript = false;
@@ -153,17 +153,17 @@ onBeforeUnmount(() => {
 .ad-unit--banner { margin: 28px 0; }
 .ad-unit-label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 9px; font-size: 10px; line-height: 14px; color: #88958b; }
 .ad-unit-label > span:first-child { letter-spacing: 2px; }
-.ad-unit-content { width: 100%; max-width: 970px; height: 90px; margin: 0 auto; }
-.ad-unit--sidebar .ad-unit-content { max-width: 300px; height: 250px; }
+.ad-unit-content { width: 100%; max-width: 970px; min-height: 90px; margin: 0 auto; }
+.ad-unit--sidebar .ad-unit-content { max-width: 300px; min-height: 250px; }
 .ad-unit.is-empty { border-color: transparent; background: transparent; }
 .ad-unit.is-empty .ad-unit-label, .ad-unit.is-empty .ad-unit-content { visibility: hidden; }
 @media (max-width: 900px) {
-  .ad-unit--sidebar .ad-unit-content { max-width: 970px; height: 100px; }
+  .ad-unit--sidebar .ad-unit-content { max-width: 970px; min-height: 100px; }
 }
 @media (max-width: 640px) {
   .ad-unit { padding: 11px 12px 12px; }
   .ad-unit--banner { margin: 24px 0; }
-  .ad-unit-content { height: 100px; }
+  .ad-unit-content { min-height: 100px; }
 }
 @media print { .ad-unit { display: none !important; } }
 </style>
